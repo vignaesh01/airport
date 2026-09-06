@@ -27,14 +27,36 @@ export function Terminal() {
 
     let disposeData: (() => void) | undefined
     let disposeExit: (() => void) | undefined
+    let cancelled = false
 
-    window.airport.createSession({ cols: term.cols, rows: term.rows }).then(({ sessionId }) => {
-      sessionIdRef.current = sessionId
-      disposeData = window.airport.onData(sessionId, (chunk) => term.write(chunk))
-      disposeExit = window.airport.onExit(sessionId, (code) => {
-        term.write(`\r\n\x1b[2m[process exited: ${code}]\x1b[0m\r\n`)
+    term.onData((data) => {
+      if (sessionIdRef.current) window.airport.write(sessionIdRef.current, data)
+    })
+
+    window.airport
+      .createSession({ cols: term.cols, rows: term.rows })
+      .then(({ sessionId }) => {
+        if (cancelled) {
+          window.airport.dispose(sessionId)
+          return
+        }
+        sessionIdRef.current = sessionId
+        disposeData = window.airport.onData(sessionId, (chunk) => term.write(chunk))
+        disposeExit = window.airport.onExit(sessionId, (code) => {
+          term.write(`\r\n\x1b[2m[process exited: ${code}]\x1b[0m\r\n`)
+        })
       })
-      term.onData((data) => window.airport.write(sessionId, data))
+      .catch((err) => {
+        term.write(
+          `\r\n\x1b[31m[failed to start session: ${err instanceof Error ? err.message : String(err)}]\x1b[0m\r\n`
+        )
+      })
+
+    document.fonts.ready.then(() => {
+      fitAddon.fit()
+      if (sessionIdRef.current) {
+        window.airport.resize(sessionIdRef.current, term.cols, term.rows)
+      }
     })
 
     const handleResize = (): void => {
@@ -47,6 +69,7 @@ export function Terminal() {
     resizeObserver.observe(container)
 
     return () => {
+      cancelled = true
       resizeObserver.disconnect()
       disposeData?.()
       disposeExit?.()
