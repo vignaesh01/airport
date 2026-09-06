@@ -1,6 +1,7 @@
 import { app, BrowserWindow, shell } from 'electron'
 import { join } from 'node:path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import { registerPtyHandlers } from './pty-manager'
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -28,6 +29,8 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+
+  registerPtyHandlers(mainWindow)
 }
 
 app.whenReady().then(() => {
