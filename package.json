@@ -23,7 +23,8 @@
     "@xterm/xterm": "^6.0.0",
     "node-pty": "^1.1.0",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "simple-git": "^3.36.0"
   },
   "devDependencies": {
     "@electron-toolkit/preload": "^3.0.2",
