@@ -3,7 +3,12 @@ import { Terminal as XTerm } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import '@xterm/xterm/css/xterm.css'
 
-export function Terminal() {
+interface TerminalProps {
+  folder: string
+  command?: string
+}
+
+export function Terminal({ folder, command }: TerminalProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const sessionIdRef = useRef<string | null>(null)
 
@@ -34,7 +39,7 @@ export function Terminal() {
     })
 
     window.airport
-      .createSession({ cols: term.cols, rows: term.rows })
+      .createSession({ cols: term.cols, rows: term.rows, cwd: folder, shellPath: command })
       .then(({ sessionId }) => {
         if (cancelled) {
           window.airport.dispose(sessionId)
@@ -76,7 +81,7 @@ export function Terminal() {
       if (sessionIdRef.current) window.airport.dispose(sessionIdRef.current)
       term.dispose()
     }
-  }, [])
+  }, [folder, command])
 
   return <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
 }
