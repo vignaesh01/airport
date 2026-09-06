@@ -1,6 +1,7 @@
 {
-  "name": "electron-shell-and-terminal",
+  "name": "airport",
   "version": "1.0.0",
+  "private": true,
   "main": "./out/main/index.js",
   "directories": {
     "doc": "docs"
@@ -16,7 +17,7 @@
   "author": "",
   "license": "ISC",
   "type": "commonjs",
-  "description": "",
+  "description": "A cross-platform desktop app for running multiple AI coding agents in managed terminal tabs.",
   "dependencies": {
     "@xterm/addon-fit": "^0.11.0",
     "@xterm/xterm": "^6.0.0",
