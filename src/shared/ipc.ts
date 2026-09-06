@@ -1,3 +1,5 @@
+import type { SessionsFile } from './session'
+
 export const PTY_CHANNELS = {
   create: 'pty:create',
   write: 'pty:write',
@@ -5,6 +7,13 @@ export const PTY_CHANNELS = {
   dispose: 'pty:dispose',
   data: 'pty:data',
   exit: 'pty:exit'
+} as const
+
+export const SESSION_CHANNELS = {
+  load: 'sessions:load',
+  save: 'sessions:save',
+  browseFolder: 'dialog:browse-folder',
+  gitBranch: 'git:branch'
 } as const
 
 export interface CreateSessionOptions {
@@ -27,4 +36,8 @@ export interface AirportApi {
   dispose(sessionId: string): void
   onData(sessionId: string, callback: (chunk: string) => void): () => void
   onExit(sessionId: string, callback: (exitCode: number) => void): () => void
+  loadSessions(): Promise<SessionsFile>
+  saveSessions(file: SessionsFile): void
+  browseFolder(): Promise<string | null>
+  gitBranch(folder: string): Promise<string | null>
 }

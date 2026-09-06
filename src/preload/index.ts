@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import { PTY_CHANNELS, type AirportApi } from '../shared/ipc'
+import { PTY_CHANNELS, SESSION_CHANNELS, type AirportApi } from '../shared/ipc'
 
 const airportApi: AirportApi = {
   createSession: (options) => ipcRenderer.invoke(PTY_CHANNELS.create, options),
@@ -20,7 +20,11 @@ const airportApi: AirportApi = {
     }
     ipcRenderer.on(PTY_CHANNELS.exit, listener)
     return () => ipcRenderer.removeListener(PTY_CHANNELS.exit, listener)
-  }
+  },
+  loadSessions: () => ipcRenderer.invoke(SESSION_CHANNELS.load),
+  saveSessions: (file) => ipcRenderer.send(SESSION_CHANNELS.save, file),
+  browseFolder: () => ipcRenderer.invoke(SESSION_CHANNELS.browseFolder),
+  gitBranch: (folder) => ipcRenderer.invoke(SESSION_CHANNELS.gitBranch, folder)
 }
 
 if (process.contextIsolated) {
