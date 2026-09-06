@@ -1,4 +1,4 @@
-import { ipcMain, type BrowserWindow } from 'electron'
+import { ipcMain, BrowserWindow } from 'electron'
 import * as pty from 'node-pty'
 import { randomUUID } from 'node:crypto'
 import { homedir } from 'node:os'
@@ -16,10 +16,11 @@ export function resolveShell(
 
 const sessions = new Map<string, pty.IPty>()
 
-export function registerPtyHandlers(window: BrowserWindow): void {
-  ipcMain.handle(PTY_CHANNELS.create, (_event, options: CreateSessionOptions) => {
+export function registerPtyHandlers(): void {
+  ipcMain.handle(PTY_CHANNELS.create, (event, options: CreateSessionOptions) => {
     const sessionId = randomUUID()
     const shellPath = options.shellPath ?? resolveShell(process.platform, process.env)
+    const window = BrowserWindow.fromWebContents(event.sender)
 
     const ptyProcess = pty.spawn(shellPath, [], {
       name: 'xterm-256color',
@@ -30,12 +31,14 @@ export function registerPtyHandlers(window: BrowserWindow): void {
     })
 
     ptyProcess.onData((chunk) => {
+      if (!window || window.isDestroyed()) return
       window.webContents.send(PTY_CHANNELS.data, sessionId, chunk)
     })
 
     ptyProcess.onExit(({ exitCode }) => {
-      window.webContents.send(PTY_CHANNELS.exit, sessionId, exitCode)
       sessions.delete(sessionId)
+      if (!window || window.isDestroyed()) return
+      window.webContents.send(PTY_CHANNELS.exit, sessionId, exitCode)
     })
 
     sessions.set(sessionId, ptyProcess)
@@ -54,4 +57,11 @@ export function registerPtyHandlers(window: BrowserWindow): void {
     sessions.get(sessionId)?.kill()
     sessions.delete(sessionId)
   })
+}
+
+export function disposeAllSessions(): void {
+  for (const ptyProcess of sessions.values()) {
+    ptyProcess.kill()
+  }
+  sessions.clear()
 }

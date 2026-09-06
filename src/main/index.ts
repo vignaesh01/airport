@@ -1,7 +1,7 @@
 import { app, BrowserWindow, shell } from 'electron'
 import { join } from 'node:path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import { registerPtyHandlers } from './pty-manager'
+import { registerPtyHandlers, disposeAllSessions } from './pty-manager'
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -20,7 +20,14 @@ function createWindow(): void {
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
+    try {
+      const url = new URL(details.url)
+      if (url.protocol === 'http:' || url.protocol === 'https:') {
+        shell.openExternal(details.url)
+      }
+    } catch {
+      // malformed URL: fall through and deny
+    }
     return { action: 'deny' }
   })
 
@@ -29,8 +36,6 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
-
-  registerPtyHandlers(mainWindow)
 }
 
 app.whenReady().then(() => {
@@ -39,6 +44,8 @@ app.whenReady().then(() => {
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
+
+  registerPtyHandlers()
 
   createWindow()
 
@@ -51,4 +58,8 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
+})
+
+app.on('before-quit', () => {
+  disposeAllSessions()
 })
