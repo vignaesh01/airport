@@ -1,6 +1,6 @@
 # Multi-session Rail & New-session Picker Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Replace the single static terminal and placeholder rail/explorer text with a real
 multi-session vertical tab rail, a native-folder-dialog "+ New session" picker, and
@@ -85,7 +85,7 @@ src/
 No test — pure type/constant declarations, same as the precedent set by the existing
 `src/shared/ipc.ts`.
 
-- [ ] **Step 1: Write `src/shared/session.ts`**
+- [x] **Step 1: Write `src/shared/session.ts`**
 
 ```ts
 export interface SessionRecord {
@@ -110,7 +110,7 @@ export interface SessionsFile {
 export const EMPTY_SESSIONS_FILE: SessionsFile = { version: 1, activeId: null, sessions: [] }
 ```
 
-- [ ] **Step 2: Write `src/shared/agents.ts`**
+- [x] **Step 2: Write `src/shared/agents.ts`**
 
 ```ts
 export interface AgentDefinition {
@@ -133,7 +133,7 @@ export const AGENTS: AgentDefinition[] = [
 ]
 ```
 
-- [ ] **Step 3: Extend `src/shared/ipc.ts`**
+- [x] **Step 3: Extend `src/shared/ipc.ts`**
 
 Add the import at the top (alongside no existing shared imports — this file currently has none):
 
@@ -169,7 +169,7 @@ export interface AirportApi {
 }
 ```
 
-- [ ] **Step 4: Type-check**
+- [x] **Step 4: Type-check**
 
 ```bash
 npm run typecheck
@@ -181,7 +181,7 @@ all, since nothing yet implements the four new `AirportApi` methods but TypeScri
 that an *interface* has implementers — only assignments to it. If you see an error, it must be a
 syntax mistake in this task's own new code — fix it before moving on.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A
@@ -205,7 +205,7 @@ Claude-Session: https://claude.ai/code/session_01W1ScUwjQ8u5Zk8AGBoAKix"
   `loadSessionsFile(): SessionsFile`, `saveSessionsFile(file: SessionsFile): void`. Task 3's
   `session-handlers.ts` calls the latter two.
 
-- [ ] **Step 1: Write the failing tests for `parseSessionsFile`**
+- [x] **Step 1: Write the failing tests for `parseSessionsFile`**
 
 `src/main/sessions-store.test.ts`:
 
@@ -251,7 +251,7 @@ describe('parseSessionsFile', () => {
 })
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 ```bash
 npx vitest run src/main/sessions-store.test.ts
@@ -259,7 +259,7 @@ npx vitest run src/main/sessions-store.test.ts
 
 Expected: FAIL — `Cannot find module './sessions-store'`.
 
-- [ ] **Step 3: Write `src/main/sessions-store.ts`**
+- [x] **Step 3: Write `src/main/sessions-store.ts`**
 
 ```ts
 import { app } from 'electron'
@@ -307,7 +307,7 @@ export function saveSessionsFile(file: SessionsFile): void {
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 ```bash
 npx vitest run src/main/sessions-store.test.ts
@@ -315,7 +315,7 @@ npx vitest run src/main/sessions-store.test.ts
 
 Expected: PASS — all 4 tests green.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A
@@ -347,13 +347,13 @@ and the `simple-git` subprocess-driving library — there's no pure logic to ext
 isolation (this mirrors the existing `registerPtyHandlers` in `src/main/pty-manager.ts`, which is
 also untested IPC-wiring code). Verified via the manual end-to-end check in Task 8.
 
-- [ ] **Step 1: Install `simple-git`**
+- [x] **Step 1: Install `simple-git`**
 
 ```bash
 npm install simple-git
 ```
 
-- [ ] **Step 2: Write `src/main/dialog.ts`**
+- [x] **Step 2: Write `src/main/dialog.ts`**
 
 ```ts
 import { dialog, type BrowserWindow } from 'electron'
@@ -367,7 +367,7 @@ export async function browseForFolder(window: BrowserWindow | null): Promise<str
 }
 ```
 
-- [ ] **Step 3: Write `src/main/git.ts`**
+- [x] **Step 3: Write `src/main/git.ts`**
 
 ```ts
 import simpleGit from 'simple-git'
@@ -385,7 +385,7 @@ export async function getBranch(folder: string): Promise<string | null> {
 }
 ```
 
-- [ ] **Step 4: Write `src/main/session-handlers.ts`**
+- [x] **Step 4: Write `src/main/session-handlers.ts`**
 
 ```ts
 import { ipcMain, BrowserWindow } from 'electron'
@@ -413,7 +413,7 @@ export function registerSessionHandlers(): void {
 }
 ```
 
-- [ ] **Step 5: Wire `registerSessionHandlers` into `src/main/index.ts`**
+- [x] **Step 5: Wire `registerSessionHandlers` into `src/main/index.ts`**
 
 Add the import:
 
@@ -428,7 +428,7 @@ In `app.whenReady().then(...)`, call it alongside `registerPtyHandlers()`:
   registerSessionHandlers()
 ```
 
-- [ ] **Step 6: Type-check**
+- [x] **Step 6: Type-check**
 
 ```bash
 npm run typecheck
@@ -436,7 +436,7 @@ npm run typecheck
 
 Expected: no errors.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add -A
@@ -460,7 +460,7 @@ Claude-Session: https://claude.ai/code/session_01W1ScUwjQ8u5Zk8AGBoAKix"
 
 No test — this is IPC glue, same precedent as the existing preload file.
 
-- [ ] **Step 1: Extend `src/preload/index.ts`**
+- [x] **Step 1: Extend `src/preload/index.ts`**
 
 Change the import line from:
 
@@ -483,7 +483,7 @@ Add these four members to the `airportApi` object literal (after the existing `o
   gitBranch: (folder) => ipcRenderer.invoke(SESSION_CHANNELS.gitBranch, folder)
 ```
 
-- [ ] **Step 2: Type-check**
+- [x] **Step 2: Type-check**
 
 ```bash
 npm run typecheck
@@ -492,7 +492,7 @@ npm run typecheck
 Expected: no errors — `airportApi` is declared `: AirportApi`, so this only compiles once all ten
 methods are present with matching signatures.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add -A
@@ -518,7 +518,7 @@ Claude-Session: https://claude.ai/code/session_01W1ScUwjQ8u5Zk8AGBoAKix"
 No test — this is the same DOM/IPC glue component from the prior plan, just parameterised. Verified
 manually in Task 8.
 
-- [ ] **Step 1: Add a props interface and thread `folder`/`command` through**
+- [x] **Step 1: Add a props interface and thread `folder`/`command` through**
 
 Change the function signature from:
 
@@ -563,7 +563,7 @@ dependency array honest):
   }, [folder, command])
 ```
 
-- [ ] **Step 2: Type-check**
+- [x] **Step 2: Type-check**
 
 ```bash
 npm run typecheck
@@ -574,7 +574,7 @@ prop yet — `App.tsx` still renders `<Terminal />` with no props. **This is exp
 fixed by Task 8.** Confirm the error is exactly about the missing `folder` prop on `<Terminal>` in
 `App.tsx` and nothing else; if there's any other error, fix it before moving on.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add -A
@@ -608,7 +608,7 @@ to fix `App.tsx` in this task.
   onSelect(id): void; onClose(id): void; onNewSession(): void; resumeCount: number;
   onResume(): void; onDiscardResume(): void }`.
 
-- [ ] **Step 1: Write the failing test for `formatElapsed`**
+- [x] **Step 1: Write the failing test for `formatElapsed`**
 
 `src/renderer/src/format-elapsed.test.ts`:
 
@@ -638,7 +638,7 @@ describe('formatElapsed', () => {
 })
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 ```bash
 npx vitest run src/renderer/src/format-elapsed.test.ts
@@ -646,7 +646,7 @@ npx vitest run src/renderer/src/format-elapsed.test.ts
 
 Expected: FAIL — `Cannot find module './format-elapsed'`.
 
-- [ ] **Step 3: Write `src/renderer/src/format-elapsed.ts`**
+- [x] **Step 3: Write `src/renderer/src/format-elapsed.ts`**
 
 ```ts
 export function formatElapsed(ms: number): string {
@@ -659,7 +659,7 @@ export function formatElapsed(ms: number): string {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 ```bash
 npx vitest run src/renderer/src/format-elapsed.test.ts
@@ -667,7 +667,7 @@ npx vitest run src/renderer/src/format-elapsed.test.ts
 
 Expected: PASS — all 4 tests green.
 
-- [ ] **Step 5: Write `src/renderer/src/SessionTab.tsx`**
+- [x] **Step 5: Write `src/renderer/src/SessionTab.tsx`**
 
 ```tsx
 import { useEffect, useState } from 'react'
@@ -739,7 +739,7 @@ export function SessionTab({ session, branch, isActive, onSelect, onClose }: Ses
 }
 ```
 
-- [ ] **Step 6: Write `src/renderer/src/SessionRail.tsx`**
+- [x] **Step 6: Write `src/renderer/src/SessionRail.tsx`**
 
 ```tsx
 import type { SessionRecord } from '../../shared/session'
@@ -811,7 +811,7 @@ export function SessionRail({
 }
 ```
 
-- [ ] **Step 7: Replace the placeholder rail/explorer CSS in `src/renderer/src/theme.css`**
+- [x] **Step 7: Replace the placeholder rail/explorer CSS in `src/renderer/src/theme.css`**
 
 Find this existing block:
 
@@ -1030,7 +1030,7 @@ layout; a new `.rail-head` through `.new-session` block follows):
 }
 ```
 
-- [ ] **Step 8: Add the agent chip tokens to the bare `:root` block**
+- [x] **Step 8: Add the agent chip tokens to the bare `:root` block**
 
 These are deliberately fixed (non-theme-varying) — ported from `design/mockup.html`'s `.agent-*`
 rules, already verified legible on both light and dark grounds. Add them inside the existing bare
@@ -1050,7 +1050,7 @@ dark-mode block:
   --agent-shell-ink: var(--text-faint);
 ```
 
-- [ ] **Step 9: Run tests and type-check**
+- [x] **Step 9: Run tests and type-check**
 
 ```bash
 npm run test
@@ -1062,7 +1062,7 @@ tests = 11 total). `npm run typecheck` still shows the one expected `Terminal`/`
 from Task 5 — nothing new. `SessionTab`/`SessionRail` aren't consumed by `App.tsx` yet (Task 8),
 so no new type errors should appear from this task's own files.
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 git add -A
@@ -1088,7 +1088,7 @@ Claude-Session: https://claude.ai/code/session_01W1ScUwjQ8u5Zk8AGBoAKix"
 
 No test — form component with no pure logic to extract; verified manually in Task 8.
 
-- [ ] **Step 1: Write `src/renderer/src/NewSessionDialog.tsx`**
+- [x] **Step 1: Write `src/renderer/src/NewSessionDialog.tsx`**
 
 ```tsx
 import { useState } from 'react'
@@ -1161,7 +1161,7 @@ export function NewSessionDialog({ onCancel, onCreate }: NewSessionDialogProps) 
 }
 ```
 
-- [ ] **Step 2: Append picker CSS to `src/renderer/src/theme.css`**
+- [x] **Step 2: Append picker CSS to `src/renderer/src/theme.css`**
 
 Add at the end of the file:
 
@@ -1305,7 +1305,7 @@ Add at the end of the file:
 }
 ```
 
-- [ ] **Step 3: Type-check**
+- [x] **Step 3: Type-check**
 
 ```bash
 npm run typecheck
@@ -1314,7 +1314,7 @@ npm run typecheck
 Expected: same single pre-existing `Terminal`/`App.tsx` error from Task 5 — nothing new from this
 task's own files.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add -A
@@ -1348,7 +1348,7 @@ extract (the pure pieces — `parseSessionsFile`, `formatElapsed` — are alread
 and 6). Follow the step-by-step logic exactly; it's worked out below to close both races described
 above. Verified via the manual end-to-end walkthrough in Step 4.
 
-- [ ] **Step 1: Rewrite `src/renderer/src/App.tsx`**
+- [x] **Step 1: Rewrite `src/renderer/src/App.tsx`**
 
 ```tsx
 import { useEffect, useState } from 'react'
@@ -1501,7 +1501,7 @@ function App() {
 export default App
 ```
 
-- [ ] **Step 2: Append terminal-stack/empty-state CSS to `src/renderer/src/theme.css`**
+- [x] **Step 2: Append terminal-stack/empty-state CSS to `src/renderer/src/theme.css`**
 
 ```css
 .terminal-stack {
@@ -1525,7 +1525,7 @@ export default App
 }
 ```
 
-- [ ] **Step 3: Run tests and type-check**
+- [x] **Step 3: Run tests and type-check**
 
 ```bash
 npm run test
@@ -1536,7 +1536,7 @@ Expected: `npm run test` — 11/11 passing (unchanged from Task 6, this task add
 tests). `npm run typecheck` — **zero errors now** (this is what resolves the expected error noted
 in Tasks 5, 6, and 7).
 
-- [ ] **Step 4: Manual end-to-end verification**
+- [x] **Step 4: Manual end-to-end verification**
 
 ```bash
 npm run build
@@ -1574,7 +1574,7 @@ Report exactly what you observed at each step, including anything you could not 
 environment limitations (native dialog interaction, git branch on a real repo, etc.) — do not
 claim to have seen something you couldn't.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A
