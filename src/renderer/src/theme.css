@@ -122,6 +122,25 @@ body {
   flex: 1;
 }
 
+.redcount {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--danger);
+  background: var(--danger-soft);
+  padding: 4px 9px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+}
+
+.redcount::before {
+  content: '▲';
+  font-size: 9px;
+}
+
 .themebtn {
   display: flex;
   align-items: center;

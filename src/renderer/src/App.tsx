@@ -200,11 +200,17 @@ function App() {
   const activeSession = sessions.find((s) => s.id === activeId) ?? null
 
   const label = theme === 'system' ? '🌗 System' : theme === 'light' ? '☀️ Light' : '🌙 Dark'
+  const needsYouCount = sessions.filter((s) => statuses[s.id] === 'red').length
 
   return (
     <div className="app">
       <div className="titlebar">
         <div className="spacer" />
+        {needsYouCount > 0 && (
+          <div className="redcount">
+            {needsYouCount} {needsYouCount === 1 ? 'needs you' : 'need you'}
+          </div>
+        )}
         <div className="fontsize-group" role="group" aria-label="Terminal font size">
           <button
             className="fontsizebtn"
