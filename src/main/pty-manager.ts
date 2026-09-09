@@ -18,22 +18,38 @@ export function resolveShell(
  * node-pty's Windows backend spawns via CreateProcess, which can't resolve
  * PATH shims like the `.cmd`/`.ps1` launchers npm installs for CLI tools
  * (e.g. `claude`, `codex`) — it fails with "File not found" for anything
- * that isn't a literal .exe. Routing the command through the platform shell
- * lets the shell's own command resolution (which does handle PATHEXT) find
- * it. POSIX shells don't have this problem since node-pty's spawn resolves
- * commands via `execvp` there, so `command` is left as the process directly.
+ * that isn't a literal .exe. Routing the command through a shell lets the
+ * shell's own command resolution (which does handle PATHEXT) find it.
+ * POSIX shells don't have this problem since node-pty's spawn resolves
+ * commands via `execvp` there, so `command` is left as the process directly
+ * — unless the user explicitly picked a shell to host it in, in which case
+ * that choice (e.g. picking bash to get its rc-file environment) wins.
+ *
+ * `shellOverride` is the shell the user picked in the new-session dialog
+ * (a real executable path, e.g. from `listShells()`); it takes priority
+ * over the platform default from `resolveShell`.
  */
 export function resolveSpawnTarget(
   platform: NodeJS.Platform,
   env: Partial<NodeJS.ProcessEnv>,
-  command: string | undefined
+  command: string | undefined,
+  shellOverride?: string
 ): { file: string; args: string[] } {
-  const shell = resolveShell(platform, env)
+  const shell = shellOverride || resolveShell(platform, env)
   if (!command) return { file: shell, args: [] }
-  if (platform !== 'win32') return { file: command, args: [] }
-  return /powershell(\.exe)?$/i.test(shell)
-    ? { file: shell, args: ['-NoExit', '-Command', command] }
-    : { file: shell, args: ['/k', command] }
+  if (platform !== 'win32') {
+    if (!shellOverride) return { file: command, args: [] }
+    return { file: shell, args: ['-lc', command] }
+  }
+  if (/powershell(\.exe)?$/i.test(shell) || /pwsh(\.exe)?$/i.test(shell)) {
+    return { file: shell, args: ['-NoExit', '-Command', command] }
+  }
+  if (/cmd(\.exe)?$/i.test(shell)) {
+    return { file: shell, args: ['/k', command] }
+  }
+  // An unrecognised shell (Git Bash, WSL, ...) picked explicitly — run the
+  // command through it rather than assuming cmd.exe-style flags.
+  return { file: shell, args: ['-lc', command] }
 }
 
 const sessions = new Map<string, pty.IPty>()
@@ -41,7 +57,7 @@ const sessions = new Map<string, pty.IPty>()
 export function registerPtyHandlers(): void {
   ipcMain.handle(PTY_CHANNELS.create, (event, options: CreateSessionOptions) => {
     const sessionId = randomUUID()
-    const { file, args } = resolveSpawnTarget(process.platform, process.env, options.shellPath)
+    const { file, args } = resolveSpawnTarget(process.platform, process.env, options.shellPath, options.shell)
     const window = BrowserWindow.fromWebContents(event.sender)
 
     const ptyProcess = pty.spawn(file, args, {

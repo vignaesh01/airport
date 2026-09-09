@@ -9,6 +9,13 @@ export interface SessionRecord {
   name: string
   /** epoch ms, used to compute elapsed time in the rail. */
   createdAt: number
+  /**
+   * Resolved executable path of the shell to host the session in (cmd,
+   * PowerShell, bash, ...), when the user picked one instead of the platform
+   * default. For the 'shell' agent this is the process itself; for any other
+   * agent, its command is launched inside this shell.
+   */
+  shellCommand?: string
 }
 
 export interface SessionsFile {

@@ -12,7 +12,13 @@ export interface AgentDefinition {
 export const AGENTS: AgentDefinition[] = [
   { id: 'claude', label: 'Claude', chipVar: '--agent-claude', inkVar: '--agent-claude-ink', command: 'claude' },
   { id: 'codex', label: 'Codex', chipVar: '--agent-codex', inkVar: '--agent-codex-ink', command: 'codex' },
-  { id: 'gemini', label: 'Gemini', chipVar: '--agent-gemini', inkVar: '--agent-gemini-ink', command: 'gemini' },
+  {
+    id: 'antigravity',
+    label: 'Antigravity CLI',
+    chipVar: '--agent-antigravity',
+    inkVar: '--agent-antigravity-ink',
+    command: 'antigravity'
+  },
   { id: 'devin', label: 'Devin', chipVar: '--agent-devin', inkVar: '--agent-devin-ink', command: 'devin' },
   { id: 'shell', label: 'Shell', chipVar: '--agent-shell', inkVar: '--agent-shell-ink' }
 ]

@@ -1,6 +1,6 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer, clipboard } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import { PTY_CHANNELS, SESSION_CHANNELS, type AirportApi } from '../shared/ipc'
+import { PTY_CHANNELS, SESSION_CHANNELS, EXPLORER_CHANNELS, SHELL_CHANNELS, type AirportApi } from '../shared/ipc'
 
 const airportApi: AirportApi = {
   createSession: (options) => ipcRenderer.invoke(PTY_CHANNELS.create, options),
@@ -24,7 +24,15 @@ const airportApi: AirportApi = {
   loadSessions: () => ipcRenderer.invoke(SESSION_CHANNELS.load),
   saveSessions: (file) => ipcRenderer.send(SESSION_CHANNELS.save, file),
   browseFolder: () => ipcRenderer.invoke(SESSION_CHANNELS.browseFolder),
-  gitBranch: (folder) => ipcRenderer.invoke(SESSION_CHANNELS.gitBranch, folder)
+  gitBranch: (folder) => ipcRenderer.invoke(SESSION_CHANNELS.gitBranch, folder),
+  explorerTree: (folder) => ipcRenderer.invoke(EXPLORER_CHANNELS.tree, folder),
+  explorerDiff: (folder, relPath) => ipcRenderer.invoke(EXPLORER_CHANNELS.diff, folder, relPath),
+  explorerReadFile: (folder, relPath) => ipcRenderer.invoke(EXPLORER_CHANNELS.readFile, folder, relPath),
+  explorerReadImage: (folder, relPath) => ipcRenderer.invoke(EXPLORER_CHANNELS.readImage, folder, relPath),
+  explorerWriteFile: (folder, relPath, content) =>
+    ipcRenderer.invoke(EXPLORER_CHANNELS.writeFile, folder, relPath, content),
+  listShells: () => ipcRenderer.invoke(SHELL_CHANNELS.list),
+  readClipboardText: () => clipboard.readText()
 }
 
 if (process.contextIsolated) {

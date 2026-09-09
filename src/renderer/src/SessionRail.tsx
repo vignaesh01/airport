@@ -7,6 +7,7 @@ interface SessionRailProps {
   activeId: string | null
   onSelect: (id: string) => void
   onClose: (id: string) => void
+  onRename: (id: string, name: string) => void
   onNewSession: () => void
   resumeCount: number
   onResume: () => void
@@ -19,6 +20,7 @@ export function SessionRail({
   activeId,
   onSelect,
   onClose,
+  onRename,
   onNewSession,
   resumeCount,
   onResume,
@@ -54,6 +56,7 @@ export function SessionRail({
             isActive={s.id === activeId}
             onSelect={() => onSelect(s.id)}
             onClose={() => onClose(s.id)}
+            onRename={(name) => onRename(s.id, name)}
           />
         ))}
       </div>

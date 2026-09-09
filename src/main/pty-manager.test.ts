@@ -49,4 +49,48 @@ describe('resolveSpawnTarget', () => {
       args: []
     })
   })
+
+  it('spawns the picked shell directly with no command (Shell agent)', () => {
+    expect(resolveSpawnTarget('win32', { COMSPEC: 'cmd.exe' }, undefined, 'C:\\pwsh\\pwsh.exe')).toEqual({
+      file: 'C:\\pwsh\\pwsh.exe',
+      args: []
+    })
+  })
+
+  it('routes a command through an explicitly picked powershell.exe, overriding COMSPEC', () => {
+    expect(
+      resolveSpawnTarget('win32', { COMSPEC: 'cmd.exe' }, 'claude', 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe')
+    ).toEqual({
+      file: 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe',
+      args: ['-NoExit', '-Command', 'claude']
+    })
+  })
+
+  it('routes a command through an explicitly picked pwsh.exe', () => {
+    expect(resolveSpawnTarget('win32', {}, 'claude', 'C:\\pwsh\\pwsh.exe')).toEqual({
+      file: 'C:\\pwsh\\pwsh.exe',
+      args: ['-NoExit', '-Command', 'claude']
+    })
+  })
+
+  it('routes a command through an explicitly picked cmd.exe', () => {
+    expect(resolveSpawnTarget('win32', {}, 'claude', 'C:\\Windows\\System32\\cmd.exe')).toEqual({
+      file: 'C:\\Windows\\System32\\cmd.exe',
+      args: ['/k', 'claude']
+    })
+  })
+
+  it('routes a command through an unrecognised picked shell (e.g. Git Bash) with -lc', () => {
+    expect(resolveSpawnTarget('win32', {}, 'claude', 'C:\\Program Files\\Git\\bin\\bash.exe')).toEqual({
+      file: 'C:\\Program Files\\Git\\bin\\bash.exe',
+      args: ['-lc', 'claude']
+    })
+  })
+
+  it('wraps a command in an explicitly picked posix shell with -lc', () => {
+    expect(resolveSpawnTarget('linux', { SHELL: '/bin/bash' }, 'claude', '/usr/bin/zsh')).toEqual({
+      file: '/usr/bin/zsh',
+      args: ['-lc', 'claude']
+    })
+  })
 })
