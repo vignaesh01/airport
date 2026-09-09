@@ -1,32 +1,32 @@
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 :root {
-  --bg: #f3f4f7;
-  --surface: #ffffff;
-  --surface-2: #eceef3;
-  --border: #d7dbe4;
-  --text: #1a1e2b;
-  --text-dim: #5a6274;
-  --text-faint: #8991a3;
-  --accent: #2f68d6;
-  --accent-ink: #ffffff;
-  --accent-soft: #e6edfc;
-  --danger: #c92a37;
-  --danger-soft: #fbe8ea;
-  --warning: #93690b;
-  --warning-soft: #faf1dc;
-  --success: #187a54;
-  --success-soft: #e2f5ec;
+  --bg: #f6f1e6;
+  --surface: #fffdf8;
+  --surface-2: #f0e9d8;
+  --border: #ddd0ab;
+  --text: #20180a;
+  --text-dim: #635a44;
+  --text-faint: #948a6f;
+  --accent: #a56a10;
+  --accent-ink: #fffdf8;
+  --accent-soft: rgba(165, 106, 16, 0.11);
+  --danger: #b3323a;
+  --danger-soft: rgba(179, 50, 58, 0.1);
+  --warning: #8a5a0c;
+  --warning-soft: rgba(138, 90, 12, 0.12);
+  --success: #1f7a4c;
+  --success-soft: rgba(31, 122, 76, 0.1);
   --grey-status: var(--text-faint);
   --grey-soft: var(--surface-2);
   --font-ui: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
-  --agent-claude: rgba(164, 128, 255, 0.14);
-  --agent-claude-ink: #a480ff;
-  --agent-codex: rgba(111, 168, 255, 0.14);
-  --agent-codex-ink: var(--accent);
-  --agent-antigravity: rgba(79, 211, 152, 0.14);
-  --agent-antigravity-ink: #1f9d6b;
+  --agent-claude: rgba(165, 106, 16, 0.14);
+  --agent-claude-ink: var(--accent);
+  --agent-codex: rgba(47, 90, 199, 0.1);
+  --agent-codex-ink: #2f5ac7;
+  --agent-antigravity: rgba(31, 122, 76, 0.12);
+  --agent-antigravity-ink: var(--success);
   --agent-devin: rgba(236, 72, 153, 0.14);
   --agent-devin-ink: #db2777;
   --agent-shell: rgba(137, 145, 163, 0.14);
@@ -35,42 +35,54 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --bg: #0e1016;
-    --surface: #161922;
-    --surface-2: #1c2028;
-    --border: #2b303c;
-    --text: #e7e9f0;
-    --text-dim: #9aa1b5;
-    --text-faint: #666c80;
-    --accent: #6fa8ff;
-    --accent-ink: #0e1016;
-    --accent-soft: rgba(111, 168, 255, 0.14);
+    --bg: #0b0f14;
+    --surface: #12171f;
+    --surface-2: #171d26;
+    --border: #262e3a;
+    --text: #ece6d8;
+    --text-dim: #a2a19a;
+    --text-faint: #666b63;
+    --accent: #ffc94d;
+    --accent-ink: #1a1305;
+    --accent-soft: rgba(255, 201, 77, 0.13);
     --danger: #f2666c;
     --danger-soft: rgba(242, 102, 108, 0.14);
     --warning: #ecc25f;
     --warning-soft: rgba(236, 194, 95, 0.14);
-    --success: #4fd398;
-    --success-soft: rgba(79, 211, 152, 0.14);
+    --success: #39ff88;
+    --success-soft: rgba(57, 255, 136, 0.12);
+    --agent-claude: rgba(255, 201, 77, 0.16);
+    --agent-claude-ink: var(--accent);
+    --agent-codex: rgba(157, 178, 255, 0.14);
+    --agent-codex-ink: #9db2ff;
+    --agent-antigravity: rgba(57, 255, 136, 0.14);
+    --agent-antigravity-ink: var(--success);
   }
 }
 
 :root[data-theme='dark'] {
-  --bg: #0e1016;
-  --surface: #161922;
-  --surface-2: #1c2028;
-  --border: #2b303c;
-  --text: #e7e9f0;
-  --text-dim: #9aa1b5;
-  --text-faint: #666c80;
-  --accent: #6fa8ff;
-  --accent-ink: #0e1016;
-  --accent-soft: rgba(111, 168, 255, 0.14);
+  --bg: #0b0f14;
+  --surface: #12171f;
+  --surface-2: #171d26;
+  --border: #262e3a;
+  --text: #ece6d8;
+  --text-dim: #a2a19a;
+  --text-faint: #666b63;
+  --accent: #ffc94d;
+  --accent-ink: #1a1305;
+  --accent-soft: rgba(255, 201, 77, 0.13);
   --danger: #f2666c;
   --danger-soft: rgba(242, 102, 108, 0.14);
   --warning: #ecc25f;
   --warning-soft: rgba(236, 194, 95, 0.14);
-  --success: #4fd398;
-  --success-soft: rgba(79, 211, 152, 0.14);
+  --success: #39ff88;
+  --success-soft: rgba(57, 255, 136, 0.12);
+  --agent-claude: rgba(255, 201, 77, 0.16);
+  --agent-claude-ink: var(--accent);
+  --agent-codex: rgba(157, 178, 255, 0.14);
+  --agent-codex-ink: #9db2ff;
+  --agent-antigravity: rgba(57, 255, 136, 0.14);
+  --agent-antigravity-ink: var(--success);
 }
 
 * {

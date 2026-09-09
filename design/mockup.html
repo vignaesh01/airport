@@ -4,41 +4,41 @@
 
   /* ============ TOKENS ============ */
   :root{
-    --bg:#f3f4f7;
-    --surface:#ffffff;
-    --surface-2:#eceef3;
-    --surface-3:#e1e4ec;
-    --border:#d7dbe4;
-    --border-soft:#e6e9f0;
-    --text:#1a1e2b;
-    --text-dim:#5a6274;
-    --text-faint:#8991a3;
+    --bg:#f6f1e6;
+    --surface:#fffdf8;
+    --surface-2:#f0e9d8;
+    --surface-3:#e6dcc4;
+    --border:#ddd0ab;
+    --border-soft:#e9e0c9;
+    --text:#20180a;
+    --text-dim:#635a44;
+    --text-faint:#948a6f;
 
-    --accent:#2f68d6;
-    --accent-ink:#ffffff;
-    --accent-soft:#e6edfc;
+    --accent:#a56a10;
+    --accent-ink:#fffdf8;
+    --accent-soft:rgba(165,106,16,.11);
 
-    --danger:#c92a37;
-    --danger-soft:#fbe8ea;
-    --warning:#93690b;
-    --warning-soft:#faf1dc;
-    --success:#187a54;
-    --success-soft:#e2f5ec;
-    --grey-status:#8991a3;
-    --grey-soft:#eceef3;
+    --danger:#b3323a;
+    --danger-soft:rgba(179,50,58,.1);
+    --warning:#8a5a0c;
+    --warning-soft:rgba(138,90,12,.12);
+    --success:#1f7a4c;
+    --success-soft:rgba(31,122,76,.1);
+    --grey-status:#948a6f;
+    --grey-soft:#ece3cd;
 
-    --shadow-sm: 0 1px 2px rgba(20,24,40,.06);
-    --shadow-md: 0 8px 24px rgba(20,24,40,.12);
+    --shadow-sm: 0 1px 2px rgba(60,45,10,.08);
+    --shadow-md: 0 8px 24px rgba(60,45,10,.16);
 
-    /* terminal chrome stays constant across themes — a real terminal keeps its own palette */
-    --term-bg:#12141b;
-    --term-bg-2:#181b24;
-    --term-border:#262b38;
+    /* terminal chrome stays constant across themes — a real terminal keeps its own palette, matching the app icon */
+    --term-bg:#0b0f14;
+    --term-bg-2:#12171f;
+    --term-border:#232b36;
     --term-text:#d7dbe6;
-    --term-dim:#7c8299;
-    --term-accent:#6fa8ff;
-    --term-green:#4fd398;
-    --term-yellow:#ecc25f;
+    --term-dim:#6d7480;
+    --term-accent:#ffc94d;
+    --term-green:#39ff88;
+    --term-yellow:#ffc94d;
     --term-red:#f2666c;
 
     --font-ui:'Manrope',system-ui,-apple-system,'Segoe UI',sans-serif;
@@ -47,59 +47,59 @@
 
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
-      --bg:#0e1016;
-      --surface:#161922;
-      --surface-2:#1c2028;
-      --surface-3:#252a35;
-      --border:#2b303c;
-      --border-soft:#232833;
-      --text:#e7e9f0;
-      --text-dim:#9aa1b5;
-      --text-faint:#666c80;
+      --bg:#0b0f14;
+      --surface:#12171f;
+      --surface-2:#171d26;
+      --surface-3:#1f2630;
+      --border:#262e3a;
+      --border-soft:#1c232d;
+      --text:#ece6d8;
+      --text-dim:#a2a19a;
+      --text-faint:#666b63;
 
-      --accent:#6fa8ff;
-      --accent-ink:#0e1016;
-      --accent-soft:rgba(111,168,255,.14);
+      --accent:#ffc94d;
+      --accent-ink:#1a1305;
+      --accent-soft:rgba(255,201,77,.13);
 
       --danger:#f2666c;
       --danger-soft:rgba(242,102,108,.14);
       --warning:#ecc25f;
       --warning-soft:rgba(236,194,95,.14);
-      --success:#4fd398;
-      --success-soft:rgba(79,211,152,.14);
-      --grey-status:#7d84990;
-      --grey-soft:#232833;
+      --success:#39ff88;
+      --success-soft:rgba(57,255,136,.12);
+      --grey-status:#7d8499;
+      --grey-soft:#1c232d;
 
-      --shadow-sm: 0 1px 2px rgba(0,0,0,.3);
-      --shadow-md: 0 12px 32px rgba(0,0,0,.45);
+      --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
+      --shadow-md: 0 12px 32px rgba(0,0,0,.55);
     }
   }
   :root[data-theme="dark"]{
-    --bg:#0e1016;
-    --surface:#161922;
-    --surface-2:#1c2028;
-    --surface-3:#252a35;
-    --border:#2b303c;
-    --border-soft:#232833;
-    --text:#e7e9f0;
-    --text-dim:#9aa1b5;
-    --text-faint:#666c80;
+    --bg:#0b0f14;
+    --surface:#12171f;
+    --surface-2:#171d26;
+    --surface-3:#1f2630;
+    --border:#262e3a;
+    --border-soft:#1c232d;
+    --text:#ece6d8;
+    --text-dim:#a2a19a;
+    --text-faint:#666b63;
 
-    --accent:#6fa8ff;
-    --accent-ink:#0e1016;
-    --accent-soft:rgba(111,168,255,.14);
+    --accent:#ffc94d;
+    --accent-ink:#1a1305;
+    --accent-soft:rgba(255,201,77,.13);
 
     --danger:#f2666c;
     --danger-soft:rgba(242,102,108,.14);
     --warning:#ecc25f;
     --warning-soft:rgba(236,194,95,.14);
-    --success:#4fd398;
-    --success-soft:rgba(79,211,152,.14);
+    --success:#39ff88;
+    --success-soft:rgba(57,255,136,.12);
     --grey-status:#7d8499;
-    --grey-soft:#232833;
+    --grey-soft:#1c232d;
 
-    --shadow-sm: 0 1px 2px rgba(0,0,0,.3);
-    --shadow-md: 0 12px 32px rgba(0,0,0,.45);
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
+    --shadow-md: 0 12px 32px rgba(0,0,0,.55);
   }
 
   *{box-sizing:border-box;}
@@ -135,11 +135,10 @@
     margin-left:6px; color:var(--text);
   }
   .brand .mark{
-    width:20px; height:20px; border-radius:5px;
-    background:var(--accent); color:var(--accent-ink);
+    width:20px; height:20px; color:var(--accent);
     display:flex; align-items:center; justify-content:center;
-    font-size:12px; transform:rotate(0deg);
   }
+  .brand .mark svg{ width:100%; height:100%; }
   .titlebar .spacer{ flex:1; }
   .redcount{
     display:flex; align-items:center; gap:6px;
@@ -229,10 +228,10 @@
     font-size:10px; font-weight:600; padding:1px 6px; border-radius:4px;
     letter-spacing:.02em;
   }
-  .agent-claude{ background:#f0e6ff1a; color:#a480ff; background:rgba(164,128,255,.14); }
-  .agent-codex{ background:rgba(111,168,255,.14); color:var(--accent); }
-  .agent-gemini{ background:rgba(79,211,152,.14); color:#1f9d6b; }
-  :root[data-theme="dark"] .agent-gemini, :root:not([data-theme="light"]) .agent-gemini{ color:#4fd398; }
+  .agent-claude{ background:var(--accent-soft); color:var(--accent); }
+  .agent-codex{ background:rgba(47,90,199,.1); color:#2f5ac7; }
+  :root[data-theme="dark"] .agent-codex, :root:not([data-theme="light"]) .agent-codex{ background:rgba(157,178,255,.14); color:#9db2ff; }
+  .agent-gemini{ background:var(--success-soft); color:var(--success); }
   .agent-shell{ background:var(--grey-soft); color:var(--text-faint); }
   .tab-branch{ opacity:.85; }
   .tab-sess{
@@ -429,7 +428,7 @@
   <!-- TITLEBAR -->
   <div class="titlebar">
     <div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-    <div class="brand"><span class="mark">▲</span>Airport</div>
+    <div class="brand"><span class="mark"><svg viewBox="-62 -50 122 100"><g transform="rotate(-34) scale(1.05)"><polygon points="50,0 20,-4 -40,-3 -46,0 -40,3 20,4" fill="currentColor"/><polygon points="-46,0 -58,-7 -58,7" fill="currentColor"/><polygon points="8,-3 -38,-46 -30,-8" fill="currentColor"/><polygon points="8,3 -38,46 -30,8" fill="currentColor" opacity=".72"/><polygon points="-30,-3 -48,-18 -42,-2" fill="currentColor"/><polygon points="-30,3 -48,18 -42,2" fill="currentColor" opacity=".72"/></g></svg></span>Airport</div>
     <div class="spacer"></div>
     <div class="redcount" id="redcount">1 needs you</div>
     <button class="themebtn" id="themebtn" type="button">🌗 System theme</button>
