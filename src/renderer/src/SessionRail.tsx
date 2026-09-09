@@ -1,9 +1,11 @@
 import type { SessionRecord } from '../../shared/session'
+import type { SessionStatus } from './status-engine'
 import { SessionTab } from './SessionTab'
 
 interface SessionRailProps {
   sessions: SessionRecord[]
   branches: Record<string, string | null>
+  statuses: Record<string, SessionStatus>
   activeId: string | null
   onSelect: (id: string) => void
   onClose: (id: string) => void
@@ -17,6 +19,7 @@ interface SessionRailProps {
 export function SessionRail({
   sessions,
   branches,
+  statuses,
   activeId,
   onSelect,
   onClose,
@@ -53,6 +56,7 @@ export function SessionRail({
             key={s.id}
             session={s}
             branch={branches[s.id] ?? null}
+            status={statuses[s.id] ?? 'yellow'}
             isActive={s.id === activeId}
             onSelect={() => onSelect(s.id)}
             onClose={() => onClose(s.id)}

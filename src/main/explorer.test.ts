@@ -82,6 +82,29 @@ describe('readFileDiff', () => {
     await fs.writeFile(path.join(dir, 'logo.png'), Buffer.from([0x89, 0x50, 0x4e, 0x47]))
     expect(await readFileDiff(dir, 'logo.png')).toBe('')
   })
+
+  it('returns empty text for a clean, fully-committed tracked file (no phantom addition)', async () => {
+    const git = simpleGit(dir)
+    await git.init()
+    await git.addConfig('user.email', 'test@example.com')
+    await git.addConfig('user.name', 'Test')
+    await fs.writeFile(path.join(dir, 'committed.txt'), 'line one\nline two\n')
+    await git.add('.')
+    await git.commit('initial')
+
+    expect(await readFileDiff(dir, 'committed.txt')).toBe('')
+  })
+
+  it('renders an untracked file as a pure addition', async () => {
+    const git = simpleGit(dir)
+    await git.init()
+    await git.addConfig('user.email', 'test@example.com')
+    await git.addConfig('user.name', 'Test')
+    await fs.writeFile(path.join(dir, 'new.txt'), 'brand new\n')
+
+    const diff = await readFileDiff(dir, 'new.txt')
+    expect(diff).toContain('+brand new')
+  })
 })
 
 describe('readFileContent', () => {

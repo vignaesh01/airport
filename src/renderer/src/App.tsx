@@ -20,6 +20,7 @@ import {
 } from './panel-sizes'
 import { AGENTS } from '../../shared/agents'
 import type { SessionRecord, SessionsFile } from '../../shared/session'
+import type { SessionStatus } from './status-engine'
 import './theme.css'
 
 const RAIL_WIDTH_KEY = 'airport.railWidth'
@@ -35,6 +36,7 @@ function App() {
   const [sessions, setSessions] = useState<SessionRecord[]>([])
   const [activeId, setActiveId] = useState<string | null>(null)
   const [branches, setBranches] = useState<Record<string, string | null>>({})
+  const [statuses, setStatuses] = useState<Record<string, SessionStatus>>({})
   const [pendingResume, setPendingResume] = useState<SessionsFile | null>(null)
   const [loaded, setLoaded] = useState(false)
   const [showNewSession, setShowNewSession] = useState(false)
@@ -134,6 +136,15 @@ function App() {
       delete copy[id]
       return copy
     })
+    setStatuses((prev) => {
+      const copy = { ...prev }
+      delete copy[id]
+      return copy
+    })
+  }
+
+  const handleStatusChange = (id: string, status: SessionStatus): void => {
+    setStatuses((prev) => (prev[id] === status ? prev : { ...prev, [id]: status }))
   }
 
   const handleRenameSession = (id: string, name: string): void => {
@@ -187,6 +198,7 @@ function App() {
         <SessionRail
           sessions={sessions}
           branches={branches}
+          statuses={statuses}
           activeId={activeId}
           onSelect={handleSelectSession}
           onClose={handleClose}
@@ -269,6 +281,7 @@ function App() {
                     command={agent?.command}
                     shell={s.shellCommand}
                     onTitleChange={(title) => handleRenameSession(s.id, title)}
+                    onStatusChange={(status) => handleStatusChange(s.id, status)}
                   />
                 </div>
               )

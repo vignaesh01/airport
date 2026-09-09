@@ -102,13 +102,49 @@ export async function readFileDiff(root: string, relPath: string): Promise<strin
     const git = simpleGit(root)
     const isRepo = await git.checkIsRepo()
     if (!isRepo) return ''
-    const tracked = await git.diff(['--', relPath])
-    if (tracked.trim().length > 0) return tracked
-    // Untracked file: diff against /dev/null so new files still render as an addition.
-    return await git.diff(['--no-index', '--', '/dev/null', relPath]).catch(() => '')
+
+    // Plain `git diff -- path` only ever compares TRACKED files against the
+    // index — for an untracked path it silently returns '', identical to what
+    // a clean, fully-committed tracked file also returns. Without checking
+    // status first, that ambiguity used to make every clean file fall through
+    // to the untracked/no-index branch, rendering its entire content as an
+    // addition even though nothing had changed.
+    const status = await git.status()
+    const normalized = relPath.replace(/\\/g, '/')
+    const isUntracked = status.not_added.some((p) => p.replace(/\\/g, '/') === normalized)
+
+    if (isUntracked) {
+      return await syntheticAdditionDiff(root, relPath)
+    }
+    return await git.diff(['--', relPath])
   } catch {
     return ''
   }
+}
+
+/**
+ * Renders an untracked file as an all-added unified diff, built directly from its
+ * content rather than via `git diff --no-index -- /dev/null path`. That subprocess
+ * route is unreliable: simple-git treats any run with a non-zero exit code AND
+ * non-empty stderr as a failure, and `--no-index` legitimately exits 1 whenever
+ * the files differ — so an unrelated informational warning on stderr (e.g. git's
+ * "LF will be replaced by CRLF" notice, common with Windows autocrlf) silently
+ * turns a valid diff into a swallowed error.
+ */
+async function syntheticAdditionDiff(root: string, relPath: string): Promise<string> {
+  let content: string
+  try {
+    content = await fs.readFile(path.join(root, relPath), 'utf8')
+  } catch {
+    return ''
+  }
+  if (content.length === 0) return ''
+
+  const lines = content.split('\n')
+  if (lines.length > 1 && lines[lines.length - 1] === '') lines.pop()
+  if (lines.length === 0) return ''
+
+  return `@@ -0,0 +1,${lines.length} @@\n${lines.map((l) => `+${l}`).join('\n')}\n`
 }
 
 export async function readFileContent(root: string, relPath: string): Promise<string> {

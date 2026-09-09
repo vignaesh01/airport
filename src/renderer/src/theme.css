@@ -17,6 +17,8 @@
   --warning-soft: #faf1dc;
   --success: #187a54;
   --success-soft: #e2f5ec;
+  --grey-status: var(--text-faint);
+  --grey-soft: var(--surface-2);
   --font-ui: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
   --agent-claude: rgba(164, 128, 255, 0.14);
@@ -385,6 +387,7 @@ body {
 }
 
 .tab {
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: 8px;
@@ -402,6 +405,83 @@ body {
 .tab.active {
   background: var(--surface-2);
   border-color: var(--border);
+}
+
+.tab.status-red::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--danger);
+  animation: tab-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes tab-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tab.status-red::before {
+    animation: none;
+  }
+}
+
+.tab-glyph {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-size: 11px;
+}
+
+.status-red .tab-glyph {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.status-yellow .tab-glyph {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+.status-green .tab-glyph {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.status-grey .tab-glyph {
+  background: var(--grey-soft);
+  color: var(--grey-status);
+}
+
+.status-yellow .tab-glyph .spin {
+  display: inline-block;
+  animation: tab-spin 1.4s linear infinite;
+}
+
+@keyframes tab-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-yellow .tab-glyph .spin {
+    animation: none;
+  }
 }
 
 .tab-body {

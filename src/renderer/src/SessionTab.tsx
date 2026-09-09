@@ -1,18 +1,28 @@
 import { useEffect, useRef, useState } from 'react'
 import type { SessionRecord } from '../../shared/session'
+import type { SessionStatus } from './status-engine'
 import { AGENTS } from '../../shared/agents'
 import { formatElapsed } from './format-elapsed'
+
+const STATUS_GLYPH: Record<SessionStatus, string> = { red: '▲', yellow: '◐', green: '✓', grey: '○' }
+const STATUS_WORD: Record<SessionStatus, string> = {
+  red: 'needs you',
+  yellow: 'working',
+  green: 'done',
+  grey: 'exited'
+}
 
 interface SessionTabProps {
   session: SessionRecord
   branch: string | null
+  status: SessionStatus
   isActive: boolean
   onSelect: () => void
   onClose: () => void
   onRename: (name: string) => void
 }
 
-export function SessionTab({ session, branch, isActive, onSelect, onClose, onRename }: SessionTabProps) {
+export function SessionTab({ session, branch, status, isActive, onSelect, onClose, onRename }: SessionTabProps) {
   const [now, setNow] = useState(() => Date.now())
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(session.name)
@@ -46,7 +56,7 @@ export function SessionTab({ session, branch, isActive, onSelect, onClose, onRen
 
   return (
     <div
-      className={`tab${isActive ? ' active' : ''}`}
+      className={`tab status-${status}${isActive ? ' active' : ''}`}
       onClick={onSelect}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') onSelect()
@@ -54,6 +64,9 @@ export function SessionTab({ session, branch, isActive, onSelect, onClose, onRen
       role="button"
       tabIndex={0}
     >
+      <div className="tab-glyph" title={STATUS_WORD[status]}>
+        <span className={status === 'yellow' ? 'spin' : undefined}>{STATUS_GLYPH[status]}</span>
+      </div>
       <div className="tab-body">
         <div className="tab-folder">{folderName}</div>
         <div className="tab-meta">

@@ -2,6 +2,15 @@ import { useEffect, useRef } from 'react'
 import { Terminal as XTerm } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import '@xterm/xterm/css/xterm.css'
+import { classifyStatus, type SessionStatus } from './status-engine'
+
+const STATUS_POLL_MS = 200
+
+function currentLine(term: XTerm): string {
+  const buf = term.buffer.active
+  const line = buf.getLine(buf.cursorY + buf.baseY)
+  return line ? line.translateToString(true) : ''
+}
 
 interface TerminalProps {
   folder: string
@@ -9,9 +18,11 @@ interface TerminalProps {
   shell?: string
   /** Called when the running process sets the terminal title (OSC 0/2), e.g. via `/rename` in Claude Code. */
   onTitleChange?: (title: string) => void
+  /** Tier 1 heuristic status (red/yellow/green/grey), re-evaluated on a timer. */
+  onStatusChange?: (status: SessionStatus) => void
 }
 
-export function Terminal({ folder, command, shell, onTitleChange }: TerminalProps) {
+export function Terminal({ folder, command, shell, onTitleChange, onStatusChange }: TerminalProps) {
   // FitAddon only ever subtracts padding it finds on xterm's own element, never
   // on its parent — so the padding lives on this outer wrapper (purely visual,
   // never measured for sizing) while xterm mounts into the zero-padding inner
@@ -21,6 +32,8 @@ export function Terminal({ folder, command, shell, onTitleChange }: TerminalProp
   const sessionIdRef = useRef<string | null>(null)
   const onTitleChangeRef = useRef(onTitleChange)
   onTitleChangeRef.current = onTitleChange
+  const onStatusChangeRef = useRef(onStatusChange)
+  onStatusChangeRef.current = onStatusChange
 
   useEffect(() => {
     const outer = outerRef.current
@@ -59,6 +72,23 @@ export function Terminal({ folder, command, shell, onTitleChange }: TerminalProp
     let disposeExit: (() => void) | undefined
     let cancelled = false
 
+    let lastOutputAt: number | null = null
+    let exited = false
+    let lastReportedStatus: SessionStatus | null = null
+
+    const reportStatus = (): void => {
+      const status = classifyStatus({
+        exited,
+        now: Date.now(),
+        lastOutputAt,
+        lastLine: currentLine(term)
+      })
+      if (status !== lastReportedStatus) {
+        lastReportedStatus = status
+        onStatusChangeRef.current?.(status)
+      }
+    }
+
     term.onData((data) => {
       if (sessionIdRef.current) window.airport.write(sessionIdRef.current, data)
     })
@@ -75,9 +105,15 @@ export function Terminal({ folder, command, shell, onTitleChange }: TerminalProp
           return
         }
         sessionIdRef.current = sessionId
-        disposeData = window.airport.onData(sessionId, (chunk) => term.write(chunk))
+        disposeData = window.airport.onData(sessionId, (chunk) => {
+          lastOutputAt = Date.now()
+          term.write(chunk)
+          reportStatus()
+        })
         disposeExit = window.airport.onExit(sessionId, (code) => {
+          exited = true
           term.write(`\r\n\x1b[2m[process exited: ${code}]\x1b[0m\r\n`)
+          reportStatus()
         })
       })
       .catch((err) => {
@@ -85,6 +121,8 @@ export function Terminal({ folder, command, shell, onTitleChange }: TerminalProp
           `\r\n\x1b[31m[failed to start session: ${err instanceof Error ? err.message : String(err)}]\x1b[0m\r\n`
         )
       })
+
+    const statusInterval = setInterval(reportStatus, STATUS_POLL_MS)
 
     document.fonts.ready.then(() => {
       fitAddon.fit()
@@ -104,6 +142,7 @@ export function Terminal({ folder, command, shell, onTitleChange }: TerminalProp
 
     return () => {
       cancelled = true
+      clearInterval(statusInterval)
       resizeObserver.disconnect()
       disposeData?.()
       disposeExit?.()
