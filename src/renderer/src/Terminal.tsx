@@ -20,9 +20,11 @@ interface TerminalProps {
   onTitleChange?: (title: string) => void
   /** Tier 1 heuristic status (red/yellow/green/grey), re-evaluated on a timer. */
   onStatusChange?: (status: SessionStatus) => void
+  /** Terminal font size in px. Changing this resizes the existing xterm instance rather than remounting it. */
+  fontSize?: number
 }
 
-export function Terminal({ folder, command, shell, onTitleChange, onStatusChange }: TerminalProps) {
+export function Terminal({ folder, command, shell, onTitleChange, onStatusChange, fontSize = 13 }: TerminalProps) {
   // FitAddon only ever subtracts padding it finds on xterm's own element, never
   // on its parent — so the padding lives on this outer wrapper (purely visual,
   // never measured for sizing) while xterm mounts into the zero-padding inner
@@ -34,6 +36,8 @@ export function Terminal({ folder, command, shell, onTitleChange, onStatusChange
   onTitleChangeRef.current = onTitleChange
   const onStatusChangeRef = useRef(onStatusChange)
   onStatusChangeRef.current = onStatusChange
+  const termRef = useRef<XTerm | null>(null)
+  const fitAddonRef = useRef<FitAddon | null>(null)
 
   useEffect(() => {
     const outer = outerRef.current
@@ -42,7 +46,7 @@ export function Terminal({ folder, command, shell, onTitleChange, onStatusChange
 
     const term = new XTerm({
       fontFamily: "'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace",
-      fontSize: 13,
+      fontSize,
       theme: {
         background: '#12141b',
         foreground: '#d7dbe6'
@@ -51,6 +55,8 @@ export function Terminal({ folder, command, shell, onTitleChange, onStatusChange
     })
     const fitAddon = new FitAddon()
     term.loadAddon(fitAddon)
+    termRef.current = term
+    fitAddonRef.current = fitAddon
 
     // Electron's default Edit-menu paste accelerator doesn't reliably reach
     // xterm's hidden textarea, so Ctrl/Cmd+V is handled explicitly via the
@@ -149,8 +155,25 @@ export function Terminal({ folder, command, shell, onTitleChange, onStatusChange
       titleDisposable.dispose()
       if (sessionIdRef.current) window.airport.dispose(sessionIdRef.current)
       term.dispose()
+      termRef.current = null
+      fitAddonRef.current = null
     }
+    // fontSize intentionally omitted: it's only the initial value here, live
+    // changes are applied by the effect below without remounting the session.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [folder, command, shell])
+
+  useEffect(() => {
+    const term = termRef.current
+    const fitAddon = fitAddonRef.current
+    if (!term || !fitAddon) return
+    if (term.options.fontSize === fontSize) return
+    term.options.fontSize = fontSize
+    fitAddon.fit()
+    if (sessionIdRef.current) {
+      window.airport.resize(sessionIdRef.current, term.cols, term.rows)
+    }
+  }, [fontSize])
 
   return (
     <div

@@ -18,6 +18,14 @@ import {
   loadWidth,
   saveWidth
 } from './panel-sizes'
+import {
+  FONT_SIZE_MIN,
+  FONT_SIZE_MAX,
+  FONT_SIZE_STEP,
+  clampFontSize,
+  loadFontSize,
+  saveFontSize
+} from './font-size'
 import { AGENTS } from '../../shared/agents'
 import type { SessionRecord, SessionsFile } from '../../shared/session'
 import type { SessionStatus } from './status-engine'
@@ -25,6 +33,7 @@ import './theme.css'
 
 const RAIL_WIDTH_KEY = 'airport.railWidth'
 const EXPLORER_WIDTH_KEY = 'airport.explorerWidth'
+const FONT_SIZE_KEY = 'airport.terminalFontSize'
 
 function makeSession(folder: string, agentId: string, shellCommand?: string): SessionRecord {
   const id = crypto.randomUUID()
@@ -47,6 +56,7 @@ function App() {
   const [explorerWidth, setExplorerWidth] = useState(() =>
     loadWidth(EXPLORER_WIDTH_KEY, EXPLORER_DEFAULT, EXPLORER_MIN, EXPLORER_MAX)
   )
+  const [fontSize, setFontSize] = useState(() => loadFontSize(FONT_SIZE_KEY))
 
   // Load persisted state once. If it holds sessions, offer to resume rather
   // than auto-launching anything — `sessions`/`activeId` stay empty until
@@ -87,6 +97,7 @@ function App() {
 
   useEffect(() => saveWidth(RAIL_WIDTH_KEY, railWidth), [railWidth])
   useEffect(() => saveWidth(EXPLORER_WIDTH_KEY, explorerWidth), [explorerWidth])
+  useEffect(() => saveFontSize(FONT_SIZE_KEY, fontSize), [fontSize])
 
   const handleDragRail = (deltaX: number): void => {
     setRailWidth((w) => clampWidth(w + deltaX, RAIL_MIN, RAIL_MAX))
@@ -101,6 +112,14 @@ function App() {
     const mode = nextTheme(theme)
     setTheme(mode)
     applyTheme(mode)
+  }
+
+  const decreaseFontSize = (): void => {
+    setFontSize((size) => clampFontSize(size - FONT_SIZE_STEP))
+  }
+
+  const increaseFontSize = (): void => {
+    setFontSize((size) => clampFontSize(size + FONT_SIZE_STEP))
   }
 
   const handleResume = (): void => {
@@ -185,8 +204,30 @@ function App() {
   return (
     <div className="app">
       <div className="titlebar">
-        <span className="brand">▲ Airport</span>
         <div className="spacer" />
+        <div className="fontsize-group" role="group" aria-label="Terminal font size">
+          <button
+            className="fontsizebtn"
+            onClick={decreaseFontSize}
+            disabled={fontSize <= FONT_SIZE_MIN}
+            type="button"
+            title="Decrease terminal font size"
+            aria-label="Decrease terminal font size"
+          >
+            A−
+          </button>
+          <span className="fontsize-value">{fontSize}</span>
+          <button
+            className="fontsizebtn"
+            onClick={increaseFontSize}
+            disabled={fontSize >= FONT_SIZE_MAX}
+            type="button"
+            title="Increase terminal font size"
+            aria-label="Increase terminal font size"
+          >
+            A+
+          </button>
+        </div>
         <button className="themebtn" onClick={cycleTheme} type="button">
           {label}
         </button>
@@ -280,6 +321,7 @@ function App() {
                     folder={s.folder}
                     command={agent?.command}
                     shell={s.shellCommand}
+                    fontSize={fontSize}
                     onTitleChange={(title) => handleRenameSession(s.id, title)}
                     onStatusChange={(status) => handleStatusChange(s.id, status)}
                   />

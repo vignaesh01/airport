@@ -106,12 +106,6 @@ body {
   background: var(--surface);
 }
 
-.brand {
-  font-weight: 800;
-  font-size: 14px;
-  color: var(--text);
-}
-
 .spacer {
   flex: 1;
 }
@@ -139,6 +133,53 @@ body {
 .themebtn:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+.fontsize-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 2px;
+}
+
+.fontsizebtn {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.fontsizebtn:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--surface);
+}
+
+.fontsizebtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.fontsizebtn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.fontsize-value {
+  min-width: 18px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-faint);
+  user-select: none;
 }
 
 .main {
@@ -584,21 +625,34 @@ body {
 
 .new-session {
   width: 100%;
-  padding: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 11px;
   border-radius: 9px;
-  border: 1px dashed var(--border);
-  background: transparent;
-  color: var(--text-dim);
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
   font-family: inherit;
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
 }
 
 .new-session:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: var(--accent-soft);
+  filter: brightness(1.08);
+}
+
+.new-session:active {
+  filter: brightness(0.96);
+}
+
+.new-session-icon {
+  font-size: 13px;
+  line-height: 1;
+  transform: rotate(-45deg);
 }
 
 .tab:focus-visible,

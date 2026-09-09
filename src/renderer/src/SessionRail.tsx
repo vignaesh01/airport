@@ -66,7 +66,7 @@ export function SessionRail({
       </div>
       <div className="rail-foot">
         <button type="button" className="new-session" onClick={onNewSession}>
-          ＋ New session
+          <span className="new-session-icon">✈</span> New session
         </button>
       </div>
     </div>
