@@ -138,7 +138,7 @@ function renderNodes(
           }}
         >
           <span className="twist">{open ? '▾' : '▸'}</span>
-          <span className="icon">▾</span>
+          <span className="icon folder-icon">{open ? '📂' : '📁'}</span>
           <span className="name">{node.name}</span>
           <span className="gitmark Q" />
         </div>
