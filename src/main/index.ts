@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { registerPtyHandlers, disposeAllSessions } from './pty-manager'
 import { registerSessionHandlers } from './session-handlers'
+import icon from '../../resources/icon.png?asset'
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -10,6 +11,7 @@ function createWindow(): void {
     height: 800,
     show: false,
     autoHideMenuBar: true,
+    icon,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
@@ -41,6 +43,10 @@ function createWindow(): void {
 
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.airport.app')
+
+  if (is.dev && process.platform === 'darwin') {
+    app.dock?.setIcon(icon)
+  }
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
