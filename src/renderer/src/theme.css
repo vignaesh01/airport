@@ -416,6 +416,13 @@ body {
   color: var(--text-faint);
 }
 
+.rail-hint {
+  padding: 0 14px 8px;
+  margin-top: -6px;
+  font-size: 10.5px;
+  color: var(--text-faint);
+}
+
 .resume-banner {
   margin: 0 10px 8px;
   padding: 10px;
@@ -505,6 +512,22 @@ body {
   .tab.status-red::before {
     animation: none;
   }
+}
+
+.tab-number {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-faint);
+  background: var(--surface-2);
+  font-family: var(--font-mono);
 }
 
 .tab-glyph {

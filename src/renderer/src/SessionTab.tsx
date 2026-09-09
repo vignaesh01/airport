@@ -17,12 +17,22 @@ interface SessionTabProps {
   branch: string | null
   status: SessionStatus
   isActive: boolean
+  index: number
   onSelect: () => void
   onClose: () => void
   onRename: (name: string) => void
 }
 
-export function SessionTab({ session, branch, status, isActive, onSelect, onClose, onRename }: SessionTabProps) {
+export function SessionTab({
+  session,
+  branch,
+  status,
+  isActive,
+  index,
+  onSelect,
+  onClose,
+  onRename
+}: SessionTabProps) {
   const [now, setNow] = useState(() => Date.now())
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(session.name)
@@ -53,6 +63,7 @@ export function SessionTab({ session, branch, status, isActive, onSelect, onClos
   const agent = AGENTS.find((a) => a.id === session.agentId)
   const folderName = session.folder.split(/[\\/]/).filter(Boolean).pop() ?? session.folder
   const shellName = session.shellCommand?.split(/[\\/]/).pop()?.replace(/\.exe$/i, '')
+  const shortcutDigit = index <= 9 ? index : index === 10 ? 0 : null
 
   return (
     <div
@@ -64,6 +75,11 @@ export function SessionTab({ session, branch, status, isActive, onSelect, onClos
       role="button"
       tabIndex={0}
     >
+      {shortcutDigit !== null && (
+        <div className="tab-number" title={`Alt+${shortcutDigit} to switch to this session`}>
+          {shortcutDigit}
+        </div>
+      )}
       <div className="tab-glyph" title={STATUS_WORD[status]}>
         <span className={status === 'yellow' ? 'spin' : undefined}>{STATUS_GLYPH[status]}</span>
       </div>

@@ -35,6 +35,7 @@ export function SessionRail({
         <span>Sessions</span>
         <span>{sessions.length}</span>
       </div>
+      {sessions.length > 1 && <div className="rail-hint">Alt+1–9 (0 for 10th) switches sessions</div>}
       {resumeCount > 0 && (
         <div className="resume-banner">
           <span>
@@ -51,13 +52,14 @@ export function SessionRail({
         </div>
       )}
       <div className="rail-list">
-        {sessions.map((s) => (
+        {sessions.map((s, i) => (
           <SessionTab
             key={s.id}
             session={s}
             branch={branches[s.id] ?? null}
             status={statuses[s.id] ?? 'yellow'}
             isActive={s.id === activeId}
+            index={i + 1}
             onSelect={() => onSelect(s.id)}
             onClose={() => onClose(s.id)}
             onRename={(name) => onRename(s.id, name)}

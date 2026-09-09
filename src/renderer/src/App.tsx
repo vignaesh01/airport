@@ -95,6 +95,25 @@ function App() {
     })
   }, [sessions, branches])
 
+  // Alt+1..9 jumps to the Nth session tab, Alt+0 to the 10th — mirrors the
+  // numbering shown on each tab in the rail.
+  useEffect(() => {
+    const handler = (e: KeyboardEvent): void => {
+      if (!e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return
+      if (!/^Digit[0-9]$/.test(e.code)) return
+      const digit = Number(e.code.slice(5))
+      const index = digit === 0 ? 9 : digit - 1
+      const target = sessions[index]
+      if (!target) return
+      e.preventDefault()
+      setActiveId(target.id)
+      setOpenFiles([])
+      setActiveFile(null)
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [sessions])
+
   useEffect(() => saveWidth(RAIL_WIDTH_KEY, railWidth), [railWidth])
   useEffect(() => saveWidth(EXPLORER_WIDTH_KEY, explorerWidth), [explorerWidth])
   useEffect(() => saveFontSize(FONT_SIZE_KEY, fontSize), [fontSize])
