@@ -1,6 +1,13 @@
 import { contextBridge, ipcRenderer, clipboard } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import { PTY_CHANNELS, SESSION_CHANNELS, EXPLORER_CHANNELS, SHELL_CHANNELS, type AirportApi } from '../shared/ipc'
+import {
+  PTY_CHANNELS,
+  SESSION_CHANNELS,
+  EXPLORER_CHANNELS,
+  SHELL_CHANNELS,
+  NOTIFICATION_CHANNELS,
+  type AirportApi
+} from '../shared/ipc'
 
 const airportApi: AirportApi = {
   createSession: (options) => ipcRenderer.invoke(PTY_CHANNELS.create, options),
@@ -32,7 +39,13 @@ const airportApi: AirportApi = {
   explorerWriteFile: (folder, relPath, content) =>
     ipcRenderer.invoke(EXPLORER_CHANNELS.writeFile, folder, relPath, content),
   listShells: () => ipcRenderer.invoke(SHELL_CHANNELS.list),
-  readClipboardText: () => clipboard.readText()
+  readClipboardText: () => clipboard.readText(),
+  notify: (options) => ipcRenderer.send(NOTIFICATION_CHANNELS.show, options),
+  onNotificationClick: (callback) => {
+    const listener = (_event: Electron.IpcRendererEvent, sessionId: string): void => callback(sessionId)
+    ipcRenderer.on(NOTIFICATION_CHANNELS.clicked, listener)
+    return () => ipcRenderer.removeListener(NOTIFICATION_CHANNELS.clicked, listener)
+  }
 }
 
 if (process.contextIsolated) {

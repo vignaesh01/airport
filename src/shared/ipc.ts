@@ -30,6 +30,17 @@ export const SHELL_CHANNELS = {
   list: 'shell:list'
 } as const
 
+export const NOTIFICATION_CHANNELS = {
+  show: 'notify:show',
+  clicked: 'notify:clicked'
+} as const
+
+export interface NotifyOptions {
+  sessionId: string
+  title: string
+  body: string
+}
+
 export interface CreateSessionOptions {
   /** Working directory for the shell. Defaults to the user's home directory when omitted. */
   cwd?: string
@@ -67,4 +78,6 @@ export interface AirportApi {
   explorerWriteFile(folder: string, relPath: string, content: string): Promise<void>
   listShells(): Promise<ShellOption[]>
   readClipboardText(): Promise<string>
+  notify(options: NotifyOptions): void
+  onNotificationClick(callback: (sessionId: string) => void): () => void
 }

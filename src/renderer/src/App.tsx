@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Terminal } from './Terminal'
 import { SessionRail } from './SessionRail'
 import { NewSessionDialog } from './NewSessionDialog'
@@ -6,7 +6,7 @@ import { Explorer } from './Explorer'
 import { FileView } from './FileView'
 import { PanelResizer } from './PanelResizer'
 import { fileIconFor } from './file-icon'
-import { applyTheme, nextTheme, type ThemeMode } from './theme'
+import { applyTheme, nextTheme, loadTheme, saveTheme, type ThemeMode } from './theme'
 import {
   RAIL_MIN,
   RAIL_MAX,
@@ -26,6 +26,7 @@ import {
   loadFontSize,
   saveFontSize
 } from './font-size'
+import { loadNotificationsEnabled, saveNotificationsEnabled } from './notification-settings'
 import { AGENTS } from '../../shared/agents'
 import type { SessionRecord, SessionsFile } from '../../shared/session'
 import type { SessionStatus } from './status-engine'
@@ -34,6 +35,8 @@ import './theme.css'
 const RAIL_WIDTH_KEY = 'airport.railWidth'
 const EXPLORER_WIDTH_KEY = 'airport.explorerWidth'
 const FONT_SIZE_KEY = 'airport.terminalFontSize'
+const NOTIFICATIONS_ENABLED_KEY = 'airport.notificationsEnabled'
+const THEME_KEY = 'airport.theme'
 
 function makeSession(folder: string, agentId: string, shellCommand?: string): SessionRecord {
   const id = crypto.randomUUID()
@@ -41,7 +44,7 @@ function makeSession(folder: string, agentId: string, shellCommand?: string): Se
 }
 
 function App() {
-  const [theme, setTheme] = useState<ThemeMode>('system')
+  const [theme, setTheme] = useState<ThemeMode>(() => loadTheme(THEME_KEY))
   const [sessions, setSessions] = useState<SessionRecord[]>([])
   const [activeId, setActiveId] = useState<string | null>(null)
   const [branches, setBranches] = useState<Record<string, string | null>>({})
@@ -57,6 +60,18 @@ function App() {
     loadWidth(EXPLORER_WIDTH_KEY, EXPLORER_DEFAULT, EXPLORER_MIN, EXPLORER_MAX)
   )
   const [fontSize, setFontSize] = useState(() => loadFontSize(FONT_SIZE_KEY))
+  const [notificationsEnabled, setNotificationsEnabled] = useState(() =>
+    loadNotificationsEnabled(NOTIFICATIONS_ENABLED_KEY)
+  )
+  // Tracks which alert (red/green) a session was last notified for, so a status
+  // that briefly flickers back and forth (e.g. a TUI redraw toggling the last
+  // rendered line) doesn't re-fire the same OS notification every poll. Cleared
+  // once the user actually looks at the session, so a genuinely new alert of
+  // the same kind (e.g. a second question) still notifies.
+  const lastNotifiedRef = useRef<Record<string, SessionStatus>>({})
+  // Snapshot of `statuses` as of the last run of the notification effect below,
+  // used to detect which sessions actually transitioned.
+  const prevStatusesRef = useRef<Record<string, SessionStatus>>({})
 
   // Load persisted state once. If it holds sessions, offer to resume rather
   // than auto-launching anything — `sessions`/`activeId` stay empty until
@@ -95,6 +110,49 @@ function App() {
     })
   }, [sessions, branches])
 
+  // Clicking an OS notification brings the app to front and jumps to the
+  // session that triggered it.
+  useEffect(() => {
+    return window.airport.onNotificationClick((sessionId) => {
+      setActiveId(sessionId)
+      setOpenFiles([])
+      setActiveFile(null)
+      delete lastNotifiedRef.current[sessionId]
+    })
+  }, [])
+
+  // Fire an OS notification when a session's status newly settles on red
+  // ("needs you") or green ("done"). Runs as a plain effect (not inline in the
+  // setStatuses updater) since updater functions must stay pure — React can
+  // invoke them extra times, and any effect placed there is invoked that many
+  // times too, or dropped entirely if it throws.
+  useEffect(() => {
+    const prev = prevStatusesRef.current
+    for (const [id, status] of Object.entries(statuses)) {
+      const previousStatus = prev[id]
+      if (previousStatus === status) continue
+      const isNewlyRedOrGreen = previousStatus !== undefined && (status === 'red' || status === 'green')
+      const alreadyNotified = lastNotifiedRef.current[id] === status
+      if (
+        notificationsEnabled &&
+        isNewlyRedOrGreen &&
+        !alreadyNotified &&
+        !(document.hasFocus() && activeId === id)
+      ) {
+        const session = sessions.find((s) => s.id === id)
+        if (session) {
+          window.airport.notify({
+            sessionId: id,
+            title: status === 'red' ? 'Needs your input' : 'Task completed',
+            body: session.name
+          })
+          lastNotifiedRef.current[id] = status
+        }
+      }
+    }
+    prevStatusesRef.current = statuses
+  }, [statuses, notificationsEnabled, activeId, sessions])
+
   // Alt+1..9 jumps to the Nth session tab, Alt+0 to the 10th — mirrors the
   // numbering shown on each tab in the rail.
   useEffect(() => {
@@ -117,6 +175,14 @@ function App() {
   useEffect(() => saveWidth(RAIL_WIDTH_KEY, railWidth), [railWidth])
   useEffect(() => saveWidth(EXPLORER_WIDTH_KEY, explorerWidth), [explorerWidth])
   useEffect(() => saveFontSize(FONT_SIZE_KEY, fontSize), [fontSize])
+  useEffect(
+    () => saveNotificationsEnabled(NOTIFICATIONS_ENABLED_KEY, notificationsEnabled),
+    [notificationsEnabled]
+  )
+  useEffect(() => {
+    applyTheme(theme)
+    saveTheme(THEME_KEY, theme)
+  }, [theme])
 
   const handleDragRail = (deltaX: number): void => {
     setRailWidth((w) => clampWidth(w + deltaX, RAIL_MIN, RAIL_MAX))
@@ -128,9 +194,7 @@ function App() {
   }
 
   const cycleTheme = (): void => {
-    const mode = nextTheme(theme)
-    setTheme(mode)
-    applyTheme(mode)
+    setTheme(nextTheme(theme))
   }
 
   const decreaseFontSize = (): void => {
@@ -164,6 +228,7 @@ function App() {
   const handleClose = (id: string): void => {
     const next = sessions.filter((s) => s.id !== id)
     setSessions(next)
+    delete lastNotifiedRef.current[id]
     if (activeId === id) {
       setActiveId(next[0]?.id ?? null)
       setOpenFiles([])
@@ -197,6 +262,7 @@ function App() {
     setActiveId(id)
     setOpenFiles([])
     setActiveFile(null)
+    delete lastNotifiedRef.current[id]
   }
 
   const handleOpenFile = (relPath: string): void => {
@@ -253,6 +319,15 @@ function App() {
             A+
           </button>
         </div>
+        <button
+          className="themebtn"
+          onClick={() => setNotificationsEnabled((v) => !v)}
+          type="button"
+          title={notificationsEnabled ? 'Disable OS notifications' : 'Enable OS notifications'}
+          aria-pressed={notificationsEnabled}
+        >
+          {notificationsEnabled ? '🔔 On' : '🔕 Off'}
+        </button>
         <button className="themebtn" onClick={cycleTheme} type="button">
           {label}
         </button>

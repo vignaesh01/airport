@@ -5,11 +5,25 @@ import '@xterm/xterm/css/xterm.css'
 import { classifyStatus, type SessionStatus } from './status-engine'
 
 const STATUS_POLL_MS = 200
+/** How many rows above the cursor's own row to scan for a prompt shape. */
+const PROMPT_SCAN_ROWS = 8
+/** Consecutive identical polls required before a status change is reported. */
+const STATUS_CONFIRM_COUNT = 2
 
-function currentLine(term: XTerm): string {
+// Full-screen TUI agents (Claude Code included) park the cursor in a
+// persistent input box at the bottom of the screen — the actual question or
+// option list renders on the rows just above it, so a single-row read misses
+// every real prompt.
+function recentLines(term: XTerm): string[] {
   const buf = term.buffer.active
-  const line = buf.getLine(buf.cursorY + buf.baseY)
-  return line ? line.translateToString(true) : ''
+  const cursorRow = buf.cursorY + buf.baseY
+  const startRow = Math.max(0, cursorRow - PROMPT_SCAN_ROWS)
+  const lines: string[] = []
+  for (let row = startRow; row <= cursorRow; row++) {
+    const line = buf.getLine(row)
+    if (line) lines.push(line.translateToString(true))
+  }
+  return lines
 }
 
 interface TerminalProps {
@@ -81,21 +95,43 @@ export function Terminal({ folder, command, shell, onTitleChange, onStatusChange
     let lastOutputAt: number | null = null
     let exited = false
     let lastReportedStatus: SessionStatus | null = null
+    let pendingStatus: SessionStatus | null = null
+    let pendingCount = 0
 
     const reportStatus = (): void => {
+      const lines = recentLines(term)
       const status = classifyStatus({
         exited,
         now: Date.now(),
         lastOutputAt,
-        lastLine: currentLine(term)
+        lines
       })
-      if (status !== lastReportedStatus) {
+      if (status === pendingStatus) {
+        pendingCount++
+      } else {
+        pendingStatus = status
+        pendingCount = 1
+      }
+      // Require the same classification across a couple of polls before
+      // reporting it — a periodic TUI redraw can transiently move the cursor
+      // on/off a prompt-shaped row, and a single blip shouldn't flip the badge
+      // or fire a notification.
+      if (pendingCount >= STATUS_CONFIRM_COUNT && status !== lastReportedStatus) {
         lastReportedStatus = status
         onStatusChangeRef.current?.(status)
       }
     }
 
     term.onData((data) => {
+      // A backgrounded tab's <textarea> is forcibly blurred by the browser the
+      // instant another tab is selected. If the agent has DECSET 1004 (focus
+      // reporting) enabled, xterm.js turns that blur into a real "focus out"
+      // (ESC[O) byte on the PTY — some full-screen TUIs (Ink-based ones
+      // included) use that signal to pause rendering until focus returns,
+      // which is exactly why a backgrounded session can appear to freeze
+      // until its tab is reselected. Airport's tab visibility is an app-level
+      // concept, not the agent's business, so never forward it.
+      if (data === '[O') return
       if (sessionIdRef.current) window.airport.write(sessionIdRef.current, data)
     })
 

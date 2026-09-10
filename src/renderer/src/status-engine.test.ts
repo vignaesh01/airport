@@ -32,10 +32,10 @@ describe('looksLikePrompt', () => {
 })
 
 describe('classifyStatus', () => {
-  const base = { exited: false, now: 10_000, lastOutputAt: 10_000, lastLine: '' }
+  const base = { exited: false, now: 10_000, lastOutputAt: 10_000, lines: [] as string[] }
 
   it('is grey once the process has exited, regardless of everything else', () => {
-    expect(classifyStatus({ ...base, exited: true, lastLine: '❯' })).toBe('grey')
+    expect(classifyStatus({ ...base, exited: true, lines: ['❯'] })).toBe('grey')
   })
 
   it('is yellow before any output has arrived', () => {
@@ -47,23 +47,36 @@ describe('classifyStatus', () => {
   })
 
   it('is red once quiet >= 800ms and the last line looks like a prompt', () => {
-    expect(classifyStatus({ ...base, now: 10_900, lastOutputAt: 10_000, lastLine: 'Allow Bash(npm test)?' })).toBe(
+    expect(classifyStatus({ ...base, now: 10_900, lastOutputAt: 10_000, lines: ['Allow Bash(npm test)?'] })).toBe(
       'red'
     )
   })
 
+  it('is red when a prompt-shaped line sits above the cursor row, not just on it', () => {
+    // Mirrors a full-screen TUI: the question/options render above the
+    // persistent input box the cursor actually sits in.
+    expect(
+      classifyStatus({
+        ...base,
+        now: 10_900,
+        lastOutputAt: 10_000,
+        lines: ['Allow Bash(npm test)?', '❯ 1. Yes', '  2. No', '', '>']
+      })
+    ).toBe('red')
+  })
+
   it('is not red at 800ms quiet without a prompt-shaped line', () => {
-    expect(classifyStatus({ ...base, now: 10_900, lastOutputAt: 10_000, lastLine: 'still building…' })).not.toBe(
+    expect(classifyStatus({ ...base, now: 10_900, lastOutputAt: 10_000, lines: ['still building…'] })).not.toBe(
       'red'
     )
   })
 
   it('is green once quiet >= 1500ms with no prompt match', () => {
-    expect(classifyStatus({ ...base, now: 11_600, lastOutputAt: 10_000, lastLine: 'done.' })).toBe('green')
+    expect(classifyStatus({ ...base, now: 11_600, lastOutputAt: 10_000, lines: ['done.'] })).toBe('green')
   })
 
   it('stays yellow in the ambiguous gap between 400ms and the red/green thresholds', () => {
-    expect(classifyStatus({ ...base, now: 10_600, lastOutputAt: 10_000, lastLine: 'still building…' })).toBe(
+    expect(classifyStatus({ ...base, now: 10_600, lastOutputAt: 10_000, lines: ['still building…'] })).toBe(
       'yellow'
     )
   })
@@ -72,8 +85,8 @@ describe('classifyStatus', () => {
     // The PTY itself is still alive (it wraps the agent command in cmd/PowerShell
     // so the window stays open), so `exited` is false — only the rendered line
     // changes to a bare shell prompt. That alone must not read as "needs you".
-    expect(classifyStatus({ ...base, now: 11_600, lastOutputAt: 10_000, lastLine: 'PS C:\\Users\\me\\project>' })).toBe(
-      'green'
-    )
+    expect(
+      classifyStatus({ ...base, now: 11_600, lastOutputAt: 10_000, lines: ['PS C:\\Users\\me\\project>'] })
+    ).toBe('green')
   })
 })

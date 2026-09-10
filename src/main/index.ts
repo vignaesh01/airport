@@ -3,10 +3,19 @@ import { join } from 'node:path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { registerPtyHandlers, disposeAllSessions } from './pty-manager'
 import { registerSessionHandlers } from './session-handlers'
-import icon from '../../resources/icon.png?asset'
+import { registerNotificationHandlers } from './notifications'
+import iconPng from '../../resources/icon.png?asset'
+import iconIco from '../../resources/icon.ico?asset'
+
+// Windows requires an .ico for the taskbar/title-bar icon to render correctly
+// at every size it's shown at — a PNG there silently falls back to Electron's
+// default icon.
+const icon = process.platform === 'win32' ? iconIco : iconPng
+
+let mainWindow: BrowserWindow | null = null
 
 function createWindow(): void {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
     show: false,
@@ -19,7 +28,11 @@ function createWindow(): void {
   })
 
   mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
+    mainWindow?.show()
+  })
+
+  mainWindow.on('closed', () => {
+    mainWindow = null
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -44,7 +57,7 @@ function createWindow(): void {
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.airport.app')
 
-  if (is.dev && process.platform === 'darwin') {
+  if (process.platform === 'darwin') {
     app.dock?.setIcon(icon)
   }
 
@@ -54,6 +67,7 @@ app.whenReady().then(() => {
 
   registerPtyHandlers()
   registerSessionHandlers()
+  registerNotificationHandlers(() => mainWindow)
 
   createWindow()
 

@@ -32,23 +32,29 @@ export interface ClassifyParams {
   now: number
   /** epoch ms of the last output chunk received, or null if none has arrived yet. */
   lastOutputAt: number | null
-  /** The rendered terminal line at the cursor's current row. */
-  lastLine: string
+  /**
+   * The last few rendered terminal rows up to and including the cursor's row,
+   * oldest first. Full-screen TUI agents (Claude Code included) park the
+   * cursor in a persistent input box at the bottom of the screen — the actual
+   * question or option list renders on the rows just above it — so checking
+   * only the cursor's own row misses every real prompt.
+   */
+  lines: string[]
 }
 
 /**
  * Tier 1 heuristic status classifier — works for any command, including plain
- * shells, using only output timing and the shape of the most recent rendered
- * line (not the raw byte stream, so it stays meaningful across full-screen/
- * alt-screen TUI redraws).
+ * shells, using only output timing and the shape of the most recently
+ * rendered rows (not the raw byte stream, so it stays meaningful across
+ * full-screen/alt-screen TUI redraws).
  */
-export function classifyStatus({ exited, now, lastOutputAt, lastLine }: ClassifyParams): SessionStatus {
+export function classifyStatus({ exited, now, lastOutputAt, lines }: ClassifyParams): SessionStatus {
   if (exited) return 'grey'
   if (lastOutputAt === null) return 'yellow'
 
   const quiet = now - lastOutputAt
   if (quiet < YELLOW_ACTIVE_MS) return 'yellow'
-  if (quiet >= RED_QUIET_MS && looksLikePrompt(lastLine)) return 'red'
+  if (quiet >= RED_QUIET_MS && lines.some(looksLikePrompt)) return 'red'
   if (quiet >= GREEN_QUIET_MS) return 'green'
   return 'yellow'
 }
