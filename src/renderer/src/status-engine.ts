@@ -7,6 +7,47 @@ export const RED_QUIET_MS = 800
 /** Quiet time after which, absent a prompt match, the agent is considered idle/done. */
 export const GREEN_QUIET_MS = 1500
 
+/**
+ * Worst-case lag between the underlying condition (output actually went
+ * quiet) and a poll confirming the resulting status change — quiet threshold
+ * plus a couple of confirmation polls, with slack. A session that was the
+ * active tab within this long of the transition settling was still being
+ * watched when the real event happened, so a notification for it would just
+ * be telling the user something they already saw.
+ */
+export const NOTIFY_SETTLE_GRACE_MS = 2500
+
+export interface ShouldNotifyParams {
+  previousStatus: SessionStatus | undefined
+  status: SessionStatus
+  /** Which status (if any) an OS notification was already fired for. */
+  alreadyNotifiedAs: SessionStatus | undefined
+  notificationsEnabled: boolean
+  /** True when this session is both the active tab and the window has OS focus. */
+  isActiveAndFocused: boolean
+  now: number
+  /** Epoch ms this session was last the active tab, or undefined if never. */
+  lastActiveAt: number | undefined
+}
+
+/**
+ * Decides whether a status transition should fire an OS notification.
+ * Pure and harness-agnostic — it only looks at status history and tab
+ * activity timing, never at which agent/shell is running in the session.
+ */
+export function shouldNotify(params: ShouldNotifyParams): boolean {
+  const { previousStatus, status, alreadyNotifiedAs, notificationsEnabled, isActiveAndFocused, now, lastActiveAt } =
+    params
+  if (!notificationsEnabled) return false
+  if (previousStatus === undefined || previousStatus === status) return false
+  if (status !== 'red' && status !== 'green') return false
+  if (alreadyNotifiedAs === status) return false
+  if (isActiveAndFocused) return false
+  const settledJustAfterLeaving = now - (lastActiveAt ?? 0) < NOTIFY_SETTLE_GRACE_MS
+  if (settledJustAfterLeaving) return false
+  return true
+}
+
 // Deliberately narrow: a bare trailing `>`/`❯` was tried first and dropped —
 // full-screen TUI agents (Claude Code included) park the cursor in a
 // persistent input box whose leading `❯` caret is visible whether or not

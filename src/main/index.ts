@@ -55,7 +55,10 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
-  electronApp.setAppUserModelId('com.airport.app')
+  // electronApp.setAppUserModelId() uses process.execPath (electron.exe) as the
+  // AUMID in dev, which points Windows' taskbar icon resolution at electron.exe's
+  // own icon instead of ours. Set it directly so the taskbar shows our icon in dev too.
+  app.setAppUserModelId('com.airport.app')
 
   if (process.platform === 'darwin') {
     app.dock?.setIcon(icon)

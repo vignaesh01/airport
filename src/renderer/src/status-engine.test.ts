@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { classifyStatus, looksLikePrompt } from './status-engine'
+import { classifyStatus, looksLikePrompt, shouldNotify, NOTIFY_SETTLE_GRACE_MS } from './status-engine'
 
 describe('looksLikePrompt', () => {
   it('matches an actual question or confirmation', () => {
@@ -88,5 +88,68 @@ describe('classifyStatus', () => {
     expect(
       classifyStatus({ ...base, now: 11_600, lastOutputAt: 10_000, lines: ['PS C:\\Users\\me\\project>'] })
     ).toBe('green')
+  })
+})
+
+describe('shouldNotify', () => {
+  const base = {
+    previousStatus: 'yellow' as const,
+    status: 'green' as const,
+    alreadyNotifiedAs: undefined,
+    notificationsEnabled: true,
+    isActiveAndFocused: false,
+    now: 100_000,
+    lastActiveAt: undefined
+  }
+
+  it('notifies on a genuine red/green transition while backgrounded', () => {
+    expect(shouldNotify(base)).toBe(true)
+    expect(shouldNotify({ ...base, previousStatus: 'yellow', status: 'red' })).toBe(true)
+  })
+
+  it('does not notify for a session that is the active, focused tab', () => {
+    expect(shouldNotify({ ...base, isActiveAndFocused: true })).toBe(false)
+  })
+
+  it('does not notify when the same status was already notified', () => {
+    expect(shouldNotify({ ...base, alreadyNotifiedAs: 'green' })).toBe(false)
+  })
+
+  it('does not notify when notifications are disabled', () => {
+    expect(shouldNotify({ ...base, notificationsEnabled: false })).toBe(false)
+  })
+
+  it('does not notify on the very first status (no prior status to transition from)', () => {
+    expect(shouldNotify({ ...base, previousStatus: undefined })).toBe(false)
+  })
+
+  it('does not notify when the status did not actually change', () => {
+    expect(shouldNotify({ ...base, previousStatus: 'green', status: 'green' })).toBe(false)
+  })
+
+  it('does not notify for a transition to yellow/grey, even if newly settled', () => {
+    expect(shouldNotify({ ...base, status: 'yellow' })).toBe(false)
+    expect(shouldNotify({ ...base, status: 'grey' })).toBe(false)
+  })
+
+  // The tab-switch race this whole function exists to close: the status
+  // classifier can take up to ~1.9s (quiet threshold + poll confirmation) to
+  // settle after output actually stops. If the user switches away from the
+  // session within that window, the underlying completion happened while
+  // they were still watching it — a notification for it would be stale.
+  it('suppresses a transition that settles just after the user switched away from it', () => {
+    const leftAt = 100_000
+    const settledAt = leftAt + NOTIFY_SETTLE_GRACE_MS - 1
+    expect(shouldNotify({ ...base, now: settledAt, lastActiveAt: leftAt })).toBe(false)
+  })
+
+  it('still notifies once enough time has passed since the user left the tab', () => {
+    const leftAt = 100_000
+    const settledAt = leftAt + NOTIFY_SETTLE_GRACE_MS + 1
+    expect(shouldNotify({ ...base, now: settledAt, lastActiveAt: leftAt })).toBe(true)
+  })
+
+  it('is unaffected by lastActiveAt for a session that was never the active tab', () => {
+    expect(shouldNotify({ ...base, lastActiveAt: undefined })).toBe(true)
   })
 })

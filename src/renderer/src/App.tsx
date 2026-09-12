@@ -29,7 +29,7 @@ import {
 import { loadNotificationsEnabled, saveNotificationsEnabled } from './notification-settings'
 import { AGENTS } from '../../shared/agents'
 import type { SessionRecord, SessionsFile } from '../../shared/session'
-import type { SessionStatus } from './status-engine'
+import { shouldNotify, type SessionStatus } from './status-engine'
 import './theme.css'
 
 const RAIL_WIDTH_KEY = 'airport.railWidth'
@@ -72,6 +72,13 @@ function App() {
   // Snapshot of `statuses` as of the last run of the notification effect below,
   // used to detect which sessions actually transitioned.
   const prevStatusesRef = useRef<Record<string, SessionStatus>>({})
+  // Epoch ms each session was last the active tab. Status detection lags the
+  // real event by up to NOTIFY_SETTLE_GRACE_MS (quiet threshold + poll
+  // confirmation), so a transition that settles just after switching away
+  // from a session usually means the underlying change happened while it was
+  // still on screen — see the notification effect below.
+  const lastActiveAtRef = useRef<Record<string, number>>({})
+  const prevActiveIdRef = useRef<string | null>(null)
 
   // Load persisted state once. If it holds sessions, offer to resume rather
   // than auto-launching anything — `sessions`/`activeId` stay empty until
@@ -121,6 +128,17 @@ function App() {
     })
   }, [])
 
+  // Record the moment each session stops being the active tab. Must run
+  // (and be declared) before the notification effect below so a switch and
+  // a status settle landing in the same commit see the fresh timestamp.
+  useEffect(() => {
+    const prevId = prevActiveIdRef.current
+    if (prevId && prevId !== activeId) {
+      lastActiveAtRef.current[prevId] = Date.now()
+    }
+    prevActiveIdRef.current = activeId
+  }, [activeId])
+
   // Fire an OS notification when a session's status newly settles on red
   // ("needs you") or green ("done"). Runs as a plain effect (not inline in the
   // setStatuses updater) since updater functions must stay pure — React can
@@ -131,13 +149,16 @@ function App() {
     for (const [id, status] of Object.entries(statuses)) {
       const previousStatus = prev[id]
       if (previousStatus === status) continue
-      const isNewlyRedOrGreen = previousStatus !== undefined && (status === 'red' || status === 'green')
-      const alreadyNotified = lastNotifiedRef.current[id] === status
       if (
-        notificationsEnabled &&
-        isNewlyRedOrGreen &&
-        !alreadyNotified &&
-        !(document.hasFocus() && activeId === id)
+        shouldNotify({
+          previousStatus,
+          status,
+          alreadyNotifiedAs: lastNotifiedRef.current[id],
+          notificationsEnabled,
+          isActiveAndFocused: document.hasFocus() && activeId === id,
+          now: Date.now(),
+          lastActiveAt: lastActiveAtRef.current[id]
+        })
       ) {
         const session = sessions.find((s) => s.id === id)
         if (session) {
