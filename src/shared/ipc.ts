@@ -78,6 +78,7 @@ export interface AirportApi {
   explorerWriteFile(folder: string, relPath: string, content: string): Promise<void>
   listShells(): Promise<ShellOption[]>
   readClipboardText(): Promise<string>
+  writeClipboardText(text: string): void
   notify(options: NotifyOptions): void
   onNotificationClick(callback: (sessionId: string) => void): () => void
 }

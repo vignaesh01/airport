@@ -82,6 +82,16 @@ export function Terminal({ folder, command, shell, onTitleChange, onStatusChange
         })
         return false
       }
+      // xterm never binds a copy shortcut itself. Plain Ctrl+C is also the
+      // SIGINT byte a shell expects, so it only means "copy" when there's a
+      // selection; with no selection it falls through and sends the
+      // interrupt as usual. Ctrl+Shift+C and Cmd+C always mean copy.
+      const isCopyKey = event.type === 'keydown' && event.key.toLowerCase() === 'c'
+      const isCopyChord = event.metaKey || event.ctrlKey
+      if (isCopyKey && isCopyChord && term.hasSelection()) {
+        window.airport.writeClipboardText(term.getSelection())
+        return false
+      }
       return true
     })
 

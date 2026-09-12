@@ -14,10 +14,10 @@ export const AGENTS: AgentDefinition[] = [
   { id: 'codex', label: 'Codex', chipVar: '--agent-codex', inkVar: '--agent-codex-ink', command: 'codex' },
   {
     id: 'antigravity',
-    label: 'Antigravity CLI',
+    label: 'Antigravity',
     chipVar: '--agent-antigravity',
     inkVar: '--agent-antigravity-ink',
-    command: 'antigravity'
+    command: 'agy'
   },
   { id: 'devin', label: 'Devin', chipVar: '--agent-devin', inkVar: '--agent-devin-ink', command: 'devin' },
   { id: 'shell', label: 'Shell', chipVar: '--agent-shell', inkVar: '--agent-shell-ink' }

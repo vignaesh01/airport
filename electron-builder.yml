@@ -1,0 +1,28 @@
+appId: com.airport.app
+productName: Airport
+directories:
+  buildResources: resources
+  output: dist
+files:
+  - out/**/*
+  - package.json
+  - '!**/.vscode/*'
+  - '!src/*'
+  - '!electron.vite.config.{js,ts,mjs,cjs}'
+  - '!{.eslintignore,.eslintrc.cjs,.eslintrc.json,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
+  - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
+  - '!**/{tsconfig.json,tsconfig.node.json,tsconfig.web.json,*.tsbuildinfo}'
+asarUnpack:
+  - '**/node_modules/node-pty/**'
+win:
+  target: zip
+  icon: resources/icon.ico
+mac:
+  target: zip
+  icon: resources/icon.png
+  category: public.app-category.developer-tools
+linux:
+  target: tar.gz
+  icon: resources/icon.png
+  category: Development
+npmRebuild: false

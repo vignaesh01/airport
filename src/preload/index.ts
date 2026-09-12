@@ -40,6 +40,7 @@ const airportApi: AirportApi = {
     ipcRenderer.invoke(EXPLORER_CHANNELS.writeFile, folder, relPath, content),
   listShells: () => ipcRenderer.invoke(SHELL_CHANNELS.list),
   readClipboardText: () => clipboard.readText(),
+  writeClipboardText: (text) => clipboard.writeText(text),
   notify: (options) => ipcRenderer.send(NOTIFICATION_CHANNELS.show, options),
   onNotificationClick: (callback) => {
     const listener = (_event: Electron.IpcRendererEvent, sessionId: string): void => callback(sessionId)
